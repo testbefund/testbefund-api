@@ -18,6 +18,10 @@ THe following environment variables are available and not mandatory.
 * ``DB_DRIVER_CLASS_NAME`` is the java class name for the JDBC driver. Defaults to ``org.postgresql.Driver``
 * ``HIBERNATE_DDL_AUTO`` Defines the schema update policy. Defaults to ``update``
 
+## API
+The API can be explored with swagger-ui. 
+1. Start the service, either with docker-compose or as Spring Boot run configuration
+2. Go to ``http://localhost:8080/swagger-ui.html`` in your browser
 
 ## Mapstruct
 We are using mapstruct to allow us to create multiple different views of objects, like the test-container read 
