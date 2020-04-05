@@ -15,7 +15,9 @@ jobs:
       with:
         java-version: 11
     - name: Build with gradle
-      run: ./gradlew -q bootJar
+      uses: eskatos/gradle-command-action@v1
+      with:
+        arguments: bootJar
     - uses: nelonoel/branch-name@v1
     - name: Build & Push to Docker Hub
       uses: zenato/docker-action@v1.0.0
