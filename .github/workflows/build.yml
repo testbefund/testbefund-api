@@ -19,11 +19,19 @@ jobs:
     - name: Build with gradle
       run: ./gradlew -q bootJar
     - uses: nelonoel/branch-name@v1
-    - name: Build & Push to Docker Hub
+    - name: Build & Push to Github Packages
       uses: zenato/docker-action@v1.0.0
       with:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
         registry: "docker.pkg.github.com"
         repository: 1-011-c/testbefund-api/testbefund-api
+        tag: ${{env.BRANCH_NAME}}
+    - name: Build & Push to Docker Hub
+      uses: zenato/docker-action@v1.0.0
+      with:
+        username: ${{ secrets.DOCKER_HUB_USER }}
+        password: ${{ secrets.DOCKER_HUB_TOKEN }}
+        registry: "hub.docker.com"
+        repository: testbefund-api/api
         tag: ${{env.BRANCH_NAME}}
