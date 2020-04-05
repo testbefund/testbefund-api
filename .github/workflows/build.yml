@@ -25,5 +25,5 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
         registry: "docker.pkg.github.com"
-        repository: 1-1011-c/testbefund-api/testbefund-api
+        repository: 1-011-c/testbefund-api/testbefund-api
         tag: ${{env.BRANCH_NAME}}
