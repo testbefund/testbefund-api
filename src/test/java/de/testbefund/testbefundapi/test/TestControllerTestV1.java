@@ -23,7 +23,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class TestControllerTest {
+class TestControllerTestV1 {
 
     private RestTemplate restTemplate = new RestTemplate();
 
@@ -31,7 +31,7 @@ class TestControllerTest {
     private int port;
 
     private String baseUri() {
-        return "http://localhost:" + port + "/test";
+        return "http://localhost:" + port + "/v1/test";
     }
 
     private ResponseEntity<TestContainer> createSampleContainer() {

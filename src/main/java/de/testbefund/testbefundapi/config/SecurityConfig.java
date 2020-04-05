@@ -30,9 +30,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
-                .antMatchers(HttpMethod.POST, "/test/container")
+                .antMatchers(HttpMethod.POST, "/v1/test/container")
                     .authenticated()
-                .antMatchers("/test/**")
+                .antMatchers("/v1/test/**")
                     .permitAll()
                 .antMatchers("/client/**")
                     .authenticated()
