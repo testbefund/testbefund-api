@@ -1,0 +1,13 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: ${HIBERNATE_DDL_AUTO:update}
+    properties:
+      javax:
+        persistence:
+          create-database-schemas: true
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/postgres}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASS:password}
+    driver-class-name: ${DB_DRIVER_CLASS_NAME:org.postgresql.Driver}

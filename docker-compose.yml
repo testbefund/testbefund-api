@@ -1,0 +1,24 @@
+version: '3.1'
+services:
+  testbefund-db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: password # password will have to be the same as DB_PASS
+    volumes:
+      - testbefund-db-data:/var/lib/postgresql/data
+  testbefund-api:
+    depends_on:
+      - testbefund-db
+    build: .
+    image: testbefund-api:latest
+    environment:
+      DB_URL: jdbc:postgresql://testbefund-db:5432/postgres
+      DB_USER: postgres
+      DB_PASS: password
+      DB_DRIVER_CLASS_NAME: org.postgresql.Driver
+    ports:
+      - 8080:8080
+volumes:
+  testbefund-db-data: {}
+
