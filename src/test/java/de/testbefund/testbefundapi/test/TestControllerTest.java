@@ -36,7 +36,7 @@ class TestControllerTest {
 
     private ResponseEntity<TestContainer> createSampleContainer() {
         CreateTestContainerRequest createTestContainerRequest = new CreateTestContainerRequest();
-        createTestContainerRequest.testRequests = List.of(TestToCreate.builder().title("Test").build());
+        createTestContainerRequest.testRequests = List.of(TestToCreate.builder().title("Test").icdCode("ICD1234").build());
         RequestEntity<CreateTestContainerRequest> request = RequestEntity.post(URI.create(baseUri() + "/container"))
                 .header("Authorization", "Basic dGVzdDp0ZXN0") // user=test, password=test
                 .body(createTestContainerRequest);
@@ -60,6 +60,9 @@ class TestControllerTest {
         assertThat(container).isNotNull();
         TestContainerReadT readContainer = getContainerByReadId(container.getReadId());
         assertThat(readContainer).isNotNull();
+        assertThat(readContainer.tests.iterator().next().icd_code).isEqualTo("ICD1234");
+        assertThat(readContainer.tests.iterator().next().title).isEqualTo("Test");
+        assertThat(readContainer.tests.iterator().next().infected).isEqualTo(TestResult.UNKNOWN);
     }
 
     @Test

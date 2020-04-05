@@ -19,5 +19,6 @@ public interface TestReadMapper {
     TestContainerReadT mapOne(TestContainer testContainer);
 
     @Mapping(source = "result", target = "infected")
+    @Mapping(source = "icdCode", target = "icd_code")
     TestCaseReadT mapOne(TestCase testCase);
 }
