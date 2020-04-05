@@ -26,3 +26,14 @@ view, which excludes sensitive (write-enabling) data.
 Mapstruct is a compile-time annoation processor and DTO mapping framework and allows us to present
 data in multiple different views using the same Java class model. 
 
+### Deployment
+
+## Minikube
+
+```sh
+$ minikube start
+```
+
+```sh
+$ kubectl apply -k kustomize
+```

@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: testbefund
+  name: testbefund-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: testbefund
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: testbefund
+    spec:
+      containers:
+      - name: testbefund-db
+        image: postgres
+        env:
+        - name: POSTGRES_PASSWORD
+          value: password
+        volumeMounts:
+        - mountPath: /var/lib/postgresql/data
+          name: testbefund-db-data
+      restartPolicy: Always
+      volumes:
+      - name: testbefund-db-data
+        persistentVolumeClaim:
+          claimName: testbefund-db-data
+status: {}

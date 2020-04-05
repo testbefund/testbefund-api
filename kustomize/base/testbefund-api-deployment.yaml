@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: testbefund
+  name: testbefund-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: testbefund
+  template:
+    metadata:
+      labels:
+        app: testbefund
+    spec:
+      containers:
+      - name: testbefund-api
+        image: docker.pkg.github.com/1-011-c/testbefund-api/testbefund-api:master
+        ports:
+        - containerPort: 8080
+        env:
+        - name: DB_DRIVER_CLASS_NAME
+          value: org.postgresql.Driver
+        - name: DB_PASS
+          value: password
+        - name: DB_URL
+          value: jdbc:postgresql://testbefund-db:5432/postgres
+        - name: DB_USER
+          value: postgres
+      restartPolicy: Always
+status: {}
