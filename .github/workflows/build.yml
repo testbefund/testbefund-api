@@ -1,0 +1,27 @@
+name: Java CI
+
+on:
+  push:
+    branches:
+      - master
+      - development
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up JDK 11
+      uses: actions/setup-java@v1
+      with:
+        java-version: 11
+    - name: Build with gradle
+      run: gradlew -q bootJar
+    - uses: nelonoel/branch-name@v1
+    - name: Build & Push to Docker Hub
+      uses: zenato/docker-action@v1.0.0
+      with:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+        registry: "docker.pkg.github.com"
+        repository: 1-1011-c/testbefund-api/testbefund-api
+        tag: ${{env.BRANCH_NAME}}
