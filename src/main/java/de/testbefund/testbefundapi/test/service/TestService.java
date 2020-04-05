@@ -69,6 +69,7 @@ public class TestService {
         return TestCase.builder()
                 .title(testToCreate.title)
                 .client(client)
+                .icdCode(testToCreate.icdCode)
                 .writeId(UUID.randomUUID().toString())
                 .result(TestResult.UNKNOWN)
                 .status(TestStatus.IN_PROGRESS)

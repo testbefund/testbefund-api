@@ -37,6 +37,9 @@ public class TestCase {
     @Column(name = "status")
     private TestStatus status;
 
+    @Column(name = "icd_code")
+    private String icdCode;
+
     @JoinColumn(name = "client_id")
     @ManyToOne
     private Client client;

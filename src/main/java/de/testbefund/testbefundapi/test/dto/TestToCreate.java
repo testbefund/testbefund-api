@@ -10,4 +10,5 @@ import lombok.NoArgsConstructor;
 public class TestToCreate {
     public String title;
     public String clientId;
+    public String icdCode;
 }

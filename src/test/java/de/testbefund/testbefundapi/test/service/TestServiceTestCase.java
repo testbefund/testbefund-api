@@ -69,6 +69,15 @@ public class TestServiceTestCase {
     }
 
     @Test
+    public void shouldCreateTest_withICDCode() {
+        TestToCreate testToCreate = TestToCreate.builder().title("Title").icdCode("icd1234").build();
+        TestContainer testContainer = testService.createTestContainer(List.of(testToCreate));
+        assertThat(testContainer.getTestCases())
+                .extracting(TestCase::getIcdCode)
+                .containsExactly("icd1234");
+    }
+
+    @Test
     void shouldPersistTestContainer() {
         TestContainer testContainer = testService.createTestContainer(List.of(TestToCreate.builder().title("TitleA").build()));
         Mockito.verify(testContainerRepository, times(1)).save(testContainer);
