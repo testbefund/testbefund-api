@@ -16,6 +16,8 @@ services:
       DB_URL: jdbc:postgresql://testbefund-db:5432/postgres
       DB_USER: postgres
       DB_PASS: password
+      APP_USER: secretUser
+      APP_PASS: verySecretPass
       DB_DRIVER_CLASS_NAME: org.postgresql.Driver
     ports:
       - 8080:8080

@@ -11,3 +11,6 @@ spring:
     username: ${DB_USER:postgres}
     password: ${DB_PASS:password}
     driver-class-name: ${DB_DRIVER_CLASS_NAME:org.postgresql.Driver}
+testbefund:
+  user: ${APP_USER:user}
+  pass: ${APP_PASS:pass}

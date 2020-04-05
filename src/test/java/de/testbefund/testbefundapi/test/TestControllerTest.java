@@ -9,15 +9,17 @@ import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URI;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class TestControllerTest {
@@ -28,13 +30,16 @@ class TestControllerTest {
     private int port;
 
     private String baseUri() {
-        return "http://localhost:" + port;
+        return "http://localhost:" + port + "/test";
     }
 
     private ResponseEntity<TestContainer> createSampleContainer() {
         CreateTestContainerRequest createTestContainerRequest = new CreateTestContainerRequest();
         createTestContainerRequest.titles = List.of("Test");
-        return restTemplate.postForEntity(baseUri() + "/container", createTestContainerRequest, TestContainer.class);
+        RequestEntity<CreateTestContainerRequest> request = RequestEntity.post(URI.create(baseUri() + "/container"))
+                .header("Authorization", "Basic dGVzdDp0ZXN0") // user=test, password=test
+                .body(createTestContainerRequest);
+        return restTemplate.exchange(request, TestContainer.class);
     }
 
     private TestContainerReadT getContainerByReadId(String readId) {
@@ -77,5 +82,14 @@ class TestControllerTest {
         assertThatThrownBy(() -> restTemplate.postForEntity(baseUri() + uri, null, String.class))
                 .isInstanceOf(HttpClientErrorException.class)
                 .hasMessageStartingWith("404");
+    }
+
+    @Test
+    void shouldNotAllowedUnauthenticatedAccess_toCreateResource() {
+        CreateTestContainerRequest createTestContainerRequest = new CreateTestContainerRequest();
+        createTestContainerRequest.titles = List.of("Test");
+        HttpClientErrorException exception = catchThrowableOfType(() -> restTemplate.postForEntity(baseUri() + "/container", createTestContainerRequest, TestContainer.class), HttpClientErrorException.class);
+        assertThat(exception).isNotNull();
+        assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 }
