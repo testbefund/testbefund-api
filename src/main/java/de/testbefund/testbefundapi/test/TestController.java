@@ -1,12 +1,12 @@
 package de.testbefund.testbefundapi.test;
 
-import de.testbefund.testbefundapi.test.data.TestCase;
 import de.testbefund.testbefundapi.test.data.TestContainer;
 import de.testbefund.testbefundapi.test.data.TestResult;
-import de.testbefund.testbefundapi.test.requests.CreateTestContainerRequest;
+import de.testbefund.testbefundapi.test.dto.CreateTestContainerRequest;
+import de.testbefund.testbefundapi.test.dto.TestContainerReadT;
+import de.testbefund.testbefundapi.test.dto.TestReadMapper;
 import de.testbefund.testbefundapi.test.service.TestService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,9 +30,10 @@ public class TestController {
     }
 
     @GetMapping(value = "/container/{read_id}", produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<TestContainer> getTestContainerByReadId(@PathVariable("read_id") String readId) {
+    public ResponseEntity<TestContainerReadT> getTestContainerByReadId(@PathVariable("read_id") String readId) {
         Optional<TestContainer> containerByReadId = testService.getContainerByReadId(readId);
         return containerByReadId
+                .map(TestReadMapper.MAPPER::mapOne)
                 .map(ResponseEntity::ok)
                 .orElse(notFound().build());
     }

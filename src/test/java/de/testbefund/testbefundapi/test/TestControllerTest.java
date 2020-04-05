@@ -3,7 +3,8 @@ package de.testbefund.testbefundapi.test;
 import de.testbefund.testbefundapi.test.data.TestCase;
 import de.testbefund.testbefundapi.test.data.TestContainer;
 import de.testbefund.testbefundapi.test.data.TestResult;
-import de.testbefund.testbefundapi.test.requests.CreateTestContainerRequest;
+import de.testbefund.testbefundapi.test.dto.CreateTestContainerRequest;
+import de.testbefund.testbefundapi.test.dto.TestContainerReadT;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -36,8 +37,8 @@ class TestControllerTest {
         return restTemplate.postForEntity(baseUri() + "/container", createTestContainerRequest, TestContainer.class);
     }
 
-    private TestContainer getContainerByReadId(String readId) {
-        return restTemplate.getForEntity(baseUri() + "/container/" + readId, TestContainer.class).getBody();
+    private TestContainerReadT getContainerByReadId(String readId) {
+        return restTemplate.getForEntity(baseUri() + "/container/" + readId, TestContainerReadT.class).getBody();
     }
 
     @Test
@@ -51,8 +52,8 @@ class TestControllerTest {
     void shouldGetTheTestContainer_byReadId() {
         TestContainer container = createSampleContainer().getBody();
         assertThat(container).isNotNull();
-        TestContainer readContainer = getContainerByReadId(container.getReadId());
-        assertThat(container).isEqualToIgnoringGivenFields(readContainer, "date");
+        TestContainerReadT readContainer = getContainerByReadId(container.getReadId());
+        assertThat(readContainer).isNotNull();
     }
 
     @Test
@@ -62,9 +63,9 @@ class TestControllerTest {
         String uri = String.format("/testcase/%s/%s", container.getTestCases().iterator().next().getWriteId(), TestResult.NEGATIVE);
         ResponseEntity<String> response = restTemplate.postForEntity(baseUri() + uri, null, String.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-        TestContainer readContainer = getContainerByReadId(container.getReadId());
-        assertThat(readContainer.getTestCases())
-                .extracting(TestCase::getTitle, TestCase::getResult)
+        TestContainerReadT readContainer = getContainerByReadId(container.getReadId());
+        assertThat(readContainer.tests)
+                .extracting(test -> test.title, test -> test.infected)
                 .containsExactly(Tuple.tuple("Test", TestResult.NEGATIVE));
     }
 

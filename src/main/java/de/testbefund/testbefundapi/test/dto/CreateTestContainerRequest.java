@@ -1,4 +1,4 @@
-package de.testbefund.testbefundapi.test.requests;
+package de.testbefund.testbefundapi.test.dto;
 
 import java.util.Collection;
 
