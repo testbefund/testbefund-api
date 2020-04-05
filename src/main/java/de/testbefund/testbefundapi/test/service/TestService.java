@@ -1,6 +1,9 @@
 package de.testbefund.testbefundapi.test.service;
 
+import de.testbefund.testbefundapi.client.data.Client;
+import de.testbefund.testbefundapi.client.data.ClientRepository;
 import de.testbefund.testbefundapi.test.data.*;
+import de.testbefund.testbefundapi.test.dto.TestToCreate;
 import de.testbefund.testbefundapi.test.error.NoTestCaseFoundException;
 import org.springframework.stereotype.Service;
 
@@ -19,13 +22,16 @@ public class TestService {
 
     private final TestRepository testRepository;
 
-    public TestService(TestContainerRepository testContainerRepository, TestRepository testRepository) {
+    private final ClientRepository clientRepository;
+
+    public TestService(TestContainerRepository testContainerRepository, TestRepository testRepository, ClientRepository clientRepository) {
         this.testContainerRepository = testContainerRepository;
         this.testRepository = testRepository;
+        this.clientRepository = clientRepository;
     }
 
     @Transactional
-    public TestContainer createTestContainer(Collection<String> testTitles) {
+    public TestContainer createTestContainer(Collection<TestToCreate> testTitles) {
         TestContainer container = TestContainer.builder()
                 .testCases(testCasesOf(testTitles))
                 .date(LocalDateTime.now())
@@ -50,14 +56,19 @@ public class TestService {
         throw new NoTestCaseFoundException();
     }
 
-    private List<TestCase> testCasesOf(Collection<String> titles) {
-        return titles.stream()
+    private List<TestCase> testCasesOf(Collection<TestToCreate> testsToCreate) {
+        return testsToCreate.stream()
                 .map(this::toTestCaseForTitle)
                 .collect(Collectors.toList());
     }
 
-    private TestCase toTestCaseForTitle(String title) {
-        return TestCase.builder().title(title)
+    private TestCase toTestCaseForTitle(TestToCreate testToCreate) {
+        Client client = Optional.ofNullable(testToCreate.clientId)
+                .map(clientRepository::getOne)
+                .orElse(null);
+        return TestCase.builder()
+                .title(testToCreate.title)
+                .client(client)
                 .writeId(UUID.randomUUID().toString())
                 .result(TestResult.UNKNOWN)
                 .status(TestStatus.IN_PROGRESS)

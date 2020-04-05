@@ -28,7 +28,7 @@ public class TestController {
 
     @PostMapping(value = "/container", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<TestContainer> createTestContainer(@RequestBody CreateTestContainerRequest request) {
-        TestContainer testContainer = testService.createTestContainer(request.titles);
+        TestContainer testContainer = testService.createTestContainer(request.testRequests);
         return ResponseEntity.ok(testContainer);
     }
 

@@ -1,6 +1,9 @@
 package de.testbefund.testbefundapi.test.service;
 
+import de.testbefund.testbefundapi.client.data.Client;
+import de.testbefund.testbefundapi.client.data.ClientRepository;
 import de.testbefund.testbefundapi.test.data.*;
+import de.testbefund.testbefundapi.test.dto.TestToCreate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -23,6 +26,9 @@ public class TestServiceTestCase {
     @Mock
     private TestContainerRepository testContainerRepository;
 
+    @Mock
+    private ClientRepository clientRepository;
+
     @BeforeEach
     void setUp() {
         initMocks(this);
@@ -31,7 +37,10 @@ public class TestServiceTestCase {
 
     @Test
     void shouldCreateTestContainer_withAllProvidedTests() {
-        TestContainer testContainer = testService.createTestContainer(List.of("TitleA", "TitleB"));
+        TestContainer testContainer = testService.createTestContainer(List.of(
+                TestToCreate.builder().title("TitleA").build(),
+                TestToCreate.builder().title("TitleB").build()
+        ));
         assertThat(testContainer.getTestCases())
                 .extracting(TestCase::getTitle)
                 .containsExactlyInAnyOrder("TitleA", "TitleB");
@@ -39,7 +48,7 @@ public class TestServiceTestCase {
 
     @Test
     void shouldInitializeTests_withCorrectData() {
-        TestContainer testContainer = testService.createTestContainer(List.of("Title"));
+        TestContainer testContainer = testService.createTestContainer(List.of(TestToCreate.builder().title("TitleA").build()));
         assertThat(testContainer.getTestCases()).hasSize(1);
         TestCase testCase = testContainer.getTestCases().iterator().next();
         assertThat(testCase.getId()).isNull(); // Filled in by auto generation
@@ -49,8 +58,19 @@ public class TestServiceTestCase {
     }
 
     @Test
+    void shouldCreateTests_withClient() {
+        Client client = Client.builder().id("ID1234").name("Client").build();
+        Mockito.when(clientRepository.getOne("ID1234")).thenReturn(client);
+        TestToCreate testToCreate = TestToCreate.builder().title("Title").clientId("ID1234").build();
+        TestContainer testContainer = testService.createTestContainer(List.of(testToCreate));
+        assertThat(testContainer.getTestCases())
+                .extracting(TestCase::getClient)
+                .containsExactly(client);
+    }
+
+    @Test
     void shouldPersistTestContainer() {
-        TestContainer testContainer = testService.createTestContainer(List.of("Title"));
+        TestContainer testContainer = testService.createTestContainer(List.of(TestToCreate.builder().title("TitleA").build()));
         Mockito.verify(testContainerRepository, times(1)).save(testContainer);
     }
 }

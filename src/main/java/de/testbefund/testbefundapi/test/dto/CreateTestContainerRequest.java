@@ -3,5 +3,5 @@ package de.testbefund.testbefundapi.test.dto;
 import java.util.Collection;
 
 public class CreateTestContainerRequest {
-    public Collection<String> titles;
+    public Collection<TestToCreate> testRequests;
 }

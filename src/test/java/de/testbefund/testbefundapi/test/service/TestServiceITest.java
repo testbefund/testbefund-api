@@ -4,6 +4,7 @@ import de.testbefund.testbefundapi.test.data.TestCase;
 import de.testbefund.testbefundapi.test.data.TestContainer;
 import de.testbefund.testbefundapi.test.data.TestContainerRepository;
 import de.testbefund.testbefundapi.test.data.TestResult;
+import de.testbefund.testbefundapi.test.dto.TestToCreate;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +29,7 @@ class TestServiceITest {
     @Test
     @Transactional
     public void shouldCreatePersistentTestCase() {
-        TestContainer savedContainer = testService.createTestContainer(List.of("Test"));
+        TestContainer savedContainer = testService.createTestContainer(List.of(TestToCreate.builder().title("Test").build()));
         assertThat(savedContainer.getId()).isNotNull();
         TestContainer persistentContainer = testContainerRepository.getOne(savedContainer.getId());
         assertThat(persistentContainer).isEqualTo(savedContainer);
@@ -37,7 +38,7 @@ class TestServiceITest {
     @Test
     @Transactional
     public void shouldCreateTestCase_andReadItByReadId() {
-        TestContainer savedContainer = testService.createTestContainer(List.of("Test"));
+        TestContainer savedContainer = testService.createTestContainer(List.of(TestToCreate.builder().title("Test").build()));
         Optional<TestContainer> maybePersistentContainer = testService.getContainerByReadId(savedContainer.getReadId());
         assertThat(maybePersistentContainer).isPresent();
         assertThat(maybePersistentContainer.get()).isEqualTo(savedContainer);
@@ -46,7 +47,7 @@ class TestServiceITest {
     @Test
     @Transactional
     public void shouldCreateTestCase_andWriteItByWriteId() {
-        TestContainer savedContainer = testService.createTestContainer(List.of("Test"));
+        TestContainer savedContainer = testService.createTestContainer(List.of(TestToCreate.builder().title("Test").build()));
         TestCase testCase = savedContainer.getTestCases().iterator().next();
         testService.updateTestByWriteId(testCase.getWriteId(), TestResult.POSITIVE);
         Optional<TestContainer> persistentContainer = testService.getContainerByReadId(savedContainer.getReadId());

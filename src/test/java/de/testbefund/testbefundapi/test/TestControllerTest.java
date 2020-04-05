@@ -5,6 +5,7 @@ import de.testbefund.testbefundapi.test.data.TestContainer;
 import de.testbefund.testbefundapi.test.data.TestResult;
 import de.testbefund.testbefundapi.test.dto.CreateTestContainerRequest;
 import de.testbefund.testbefundapi.test.dto.TestContainerReadT;
+import de.testbefund.testbefundapi.test.dto.TestToCreate;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -35,7 +36,7 @@ class TestControllerTest {
 
     private ResponseEntity<TestContainer> createSampleContainer() {
         CreateTestContainerRequest createTestContainerRequest = new CreateTestContainerRequest();
-        createTestContainerRequest.titles = List.of("Test");
+        createTestContainerRequest.testRequests = List.of(TestToCreate.builder().title("Test").build());
         RequestEntity<CreateTestContainerRequest> request = RequestEntity.post(URI.create(baseUri() + "/container"))
                 .header("Authorization", "Basic dGVzdDp0ZXN0") // user=test, password=test
                 .body(createTestContainerRequest);
@@ -87,7 +88,7 @@ class TestControllerTest {
     @Test
     void shouldNotAllowedUnauthenticatedAccess_toCreateResource() {
         CreateTestContainerRequest createTestContainerRequest = new CreateTestContainerRequest();
-        createTestContainerRequest.titles = List.of("Test");
+        createTestContainerRequest.testRequests = List.of(TestToCreate.builder().title("Title").build());
         HttpClientErrorException exception = catchThrowableOfType(() -> restTemplate.postForEntity(baseUri() + "/container", createTestContainerRequest, TestContainer.class), HttpClientErrorException.class);
         assertThat(exception).isNotNull();
         assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
