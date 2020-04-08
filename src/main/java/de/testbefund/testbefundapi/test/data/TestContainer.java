@@ -28,6 +28,7 @@ public class TestContainer {
     private String readId;
     @Column(name = "date")
     private LocalDateTime date;
-    @OneToMany(cascade = ALL, orphanRemoval = true, mappedBy = "testContainer")
+    @OneToMany(cascade = ALL, orphanRemoval = true)
+    @JoinColumn(name = "test_container_id")
     private Collection<TestCase> testCases;
 }

@@ -45,7 +45,6 @@ public class TestCase {
     private Client client;
 
     @ManyToOne
-    @JoinColumn(name = "test_container_id")
     @JsonIgnore // Backreference, don't serialize
     private TestContainer testContainer;
 }
