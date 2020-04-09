@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Data
 @Entity
@@ -31,11 +32,14 @@ public class TestCase {
 
     @Enumerated()
     @Column(name = "result")
-    private TestResult result;
+    private TestResult currentResult;
 
     @Enumerated()
     @Column(name = "status")
-    private TestStatus status;
+    private TestStatus currentStatus;
+
+    @Column(name = "last_change_date")
+    private LocalDateTime lastChangeDate;
 
     @Column(name = "icd_code")
     private String icdCode;

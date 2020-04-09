@@ -5,6 +5,7 @@ import de.testbefund.testbefundapi.client.data.ClientRepository;
 import de.testbefund.testbefundapi.test.data.*;
 import de.testbefund.testbefundapi.test.dto.TestToCreate;
 import de.testbefund.testbefundapi.test.error.NoTestCaseFoundException;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -13,6 +14,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,10 +26,17 @@ public class TestService {
 
     private final ClientRepository clientRepository;
 
-    public TestService(TestContainerRepository testContainerRepository, TestRepository testRepository, ClientRepository clientRepository) {
+    private final Supplier<LocalDateTime> currentDateSupplier;
+
+    public TestService(TestContainerRepository testContainerRepository,
+                       TestRepository testRepository,
+                       ClientRepository clientRepository,
+                       @Qualifier("currentDateSupplier") Supplier<LocalDateTime> currentDateSupplier
+    ) {
         this.testContainerRepository = testContainerRepository;
         this.testRepository = testRepository;
         this.clientRepository = clientRepository;
+        this.currentDateSupplier = currentDateSupplier;
     }
 
     @Transactional
@@ -47,10 +56,13 @@ public class TestService {
     @Transactional
     public void updateTestByWriteId(String writeId, TestResult testResult) {
         testRepository.findByWriteId(writeId)
-                .ifPresentOrElse(testCase -> testCase.setResult(testResult), this::throwNoTestCaseFound);
-
+                .ifPresentOrElse(testCase -> updateTestCase(testResult, testCase), this::throwNoTestCaseFound);
     }
 
+    private void updateTestCase(TestResult testResult, TestCase testCase) {
+        testCase.setCurrentResult(testResult);
+        testCase.setLastChangeDate(currentDateSupplier.get());
+    }
 
     private void throwNoTestCaseFound() {
         throw new NoTestCaseFoundException();
@@ -70,9 +82,10 @@ public class TestService {
                 .title(testToCreate.title)
                 .client(client)
                 .icdCode(testToCreate.icdCode)
+                .lastChangeDate(currentDateSupplier.get())
                 .writeId(UUID.randomUUID().toString())
-                .result(TestResult.UNKNOWN)
-                .status(TestStatus.IN_PROGRESS)
+                .currentResult(TestResult.UNKNOWN)
+                .currentStatus(TestStatus.IN_PROGRESS)
                 .build();
     }
 }

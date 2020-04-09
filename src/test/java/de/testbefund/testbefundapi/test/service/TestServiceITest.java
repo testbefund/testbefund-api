@@ -53,7 +53,7 @@ class TestServiceITest {
         Optional<TestContainer> persistentContainer = testService.getContainerByReadId(savedContainer.getReadId());
         assertThat(persistentContainer).isPresent();
         assertThat(persistentContainer.get().getTestCases())
-                .extracting(TestCase::getTitle, TestCase::getResult)
+                .extracting(TestCase::getTitle, TestCase::getCurrentResult)
                 .containsExactly(Tuple.tuple("Test", TestResult.POSITIVE));
     }
 }
