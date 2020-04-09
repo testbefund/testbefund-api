@@ -2,18 +2,17 @@ package de.testbefund.testbefundapi.test;
 
 import de.testbefund.testbefundapi.client.data.Client;
 import de.testbefund.testbefundapi.client.data.ClientRepository;
-import de.testbefund.testbefundapi.test.data.TestCase;
 import de.testbefund.testbefundapi.test.data.TestContainer;
-import de.testbefund.testbefundapi.test.data.TestResult;
 import de.testbefund.testbefundapi.test.dto.CreateTestContainerRequest;
 import de.testbefund.testbefundapi.test.dto.TestContainerReadT;
+import de.testbefund.testbefundapi.test.dto.TestResultT;
 import de.testbefund.testbefundapi.test.dto.TestToCreate;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +20,9 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -68,27 +69,27 @@ class TestControllerTestV1 {
         assertThat(readContainer).isNotNull();
         assertThat(readContainer.tests.iterator().next().icd_code).isEqualTo("ICD1234");
         assertThat(readContainer.tests.iterator().next().title).isEqualTo("Test");
-        assertThat(readContainer.tests.iterator().next().infected).isEqualTo(TestResult.UNKNOWN);
+        assertThat(readContainer.tests.iterator().next().infected).isEqualTo(TestResultT.UNKNOWN);
     }
 
     @Test
     void shouldUpdateContainer() {
         TestContainer container = createSampleContainer().getBody();
         assertThat(container).isNotNull();
-        String uri = String.format("/testcase/%s/%s", container.getTestCases().iterator().next().getWriteId(), TestResult.NEGATIVE);
+        String uri = String.format("/testcase/%s/%s", container.getTestCases().iterator().next().getWriteId(), TestResultT.NEGATIVE);
         ResponseEntity<String> response = restTemplate.postForEntity(baseUri() + uri, null, String.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
         TestContainerReadT readContainer = getContainerByReadId(container.getReadId());
         assertThat(readContainer.tests)
                 .extracting(test -> test.title, test -> test.infected)
-                .containsExactly(Tuple.tuple("Test", TestResult.NEGATIVE));
+                .containsExactly(Tuple.tuple("Test", TestResultT.NEGATIVE));
     }
 
     @Test
     void shouldReturnNotFound_whenTryingToUpdateNonExistingContainer() {
         TestContainer container = createSampleContainer().getBody();
         assertThat(container).isNotNull();
-        String uri = String.format("/testcase/%s/%s", "FOOBAR", TestResult.NEGATIVE);
+        String uri = String.format("/testcase/%s/%s", "FOOBAR", TestResultT.NEGATIVE);
         assertThatThrownBy(() -> restTemplate.postForEntity(baseUri() + uri, null, String.class))
                 .isInstanceOf(HttpClientErrorException.class)
                 .hasMessageStartingWith("404");
@@ -104,7 +105,7 @@ class TestControllerTestV1 {
     }
 
     @Test
-    public void shouldCreateTestCase_withClient() {
+    void shouldCreateTestCase_withClient() {
         Client client = Client.builder().name("Test")
                 .address("Testweg 1")
                 .email("test@test.test")

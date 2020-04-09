@@ -30,13 +30,13 @@ public class TestCase {
     @Column(name = "title")
     private String title;
 
-    @Enumerated()
-    @Column(name = "result")
-    private TestResult currentResult;
+    @Column(name = "grace_period_minutes", nullable = false)
+    @Builder.Default
+    private int gracePeriodMinutes = 20;
 
-    @Enumerated()
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private TestStatus currentStatus;
+    private TestStageStatus currentStatus;
 
     @Column(name = "last_change_date")
     private LocalDateTime lastChangeDate;

@@ -1,10 +1,10 @@
 package de.testbefund.testbefundapi.test;
 
 import de.testbefund.testbefundapi.test.data.TestContainer;
-import de.testbefund.testbefundapi.test.data.TestResult;
 import de.testbefund.testbefundapi.test.dto.CreateTestContainerRequest;
 import de.testbefund.testbefundapi.test.dto.TestContainerReadT;
 import de.testbefund.testbefundapi.test.dto.TestReadMapper;
+import de.testbefund.testbefundapi.test.dto.TestResultT;
 import de.testbefund.testbefundapi.test.service.TestService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -23,8 +23,11 @@ import static org.springframework.http.ResponseEntity.notFound;
 @EnableWebSecurity
 public class TestControllerV1 {
 
-    @Autowired
-    private TestService testService;
+    private final TestService testService;
+
+    public TestControllerV1(TestService testService) {
+        this.testService = testService;
+    }
 
     @PostMapping(value = "/container", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<TestContainer> createTestContainer(@RequestBody CreateTestContainerRequest request) {
@@ -42,7 +45,7 @@ public class TestControllerV1 {
     }
 
     @PostMapping(value = "/testcase/{write_id}/{test_result}")
-    public ResponseEntity updateTestByWriteId(@PathVariable("write_id") String writeId, @PathVariable("test_result") TestResult testResult) {
+    public ResponseEntity updateTestByWriteId(@PathVariable("write_id") String writeId, @PathVariable("test_result") TestResultT testResult) {
         testService.updateTestByWriteId(writeId, testResult);
         return noContent().build();
     }

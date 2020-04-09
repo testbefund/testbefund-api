@@ -1,6 +1,5 @@
 package de.testbefund.testbefundapi.test.data;
 
-import de.testbefund.testbefundapi.test.data.TestCase;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

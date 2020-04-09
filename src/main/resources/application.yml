@@ -14,3 +14,4 @@ spring:
 testbefund:
   user: ${APP_USER:user}
   pass: ${APP_PASS:pass}
+  grace-period-in-minutes: 20

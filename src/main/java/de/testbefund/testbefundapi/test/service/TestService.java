@@ -3,9 +3,11 @@ package de.testbefund.testbefundapi.test.service;
 import de.testbefund.testbefundapi.client.data.Client;
 import de.testbefund.testbefundapi.client.data.ClientRepository;
 import de.testbefund.testbefundapi.test.data.*;
+import de.testbefund.testbefundapi.test.dto.TestResultT;
 import de.testbefund.testbefundapi.test.dto.TestToCreate;
 import de.testbefund.testbefundapi.test.error.NoTestCaseFoundException;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -27,6 +29,9 @@ public class TestService {
     private final ClientRepository clientRepository;
 
     private final Supplier<LocalDateTime> currentDateSupplier;
+
+    @Value("${testbefund.grace-period-in-minutes}")
+    int gracePeriod = 20;
 
     public TestService(TestContainerRepository testContainerRepository,
                        TestRepository testRepository,
@@ -54,13 +59,23 @@ public class TestService {
     }
 
     @Transactional
-    public void updateTestByWriteId(String writeId, TestResult testResult) {
+    public void updateTestByWriteId(String writeId, TestResultT result) {
         testRepository.findByWriteId(writeId)
-                .ifPresentOrElse(testCase -> updateTestCase(testResult, testCase), this::throwNoTestCaseFound);
+                .ifPresentOrElse(testCase -> updateTestCase(result, testCase), this::throwNoTestCaseFound);
     }
 
-    private void updateTestCase(TestResult testResult, TestCase testCase) {
-        testCase.setCurrentResult(testResult);
+    private void updateTestCase(TestResultT testResult, TestCase testCase) {
+        switch (testResult) {
+            case UNKNOWN:
+                testCase.setCurrentStatus(TestStageStatus.ISSUED);
+                break;
+            case POSITIVE:
+                testCase.setCurrentStatus(TestStageStatus.CONFIRM_POSITIVE);
+                break;
+            case NEGATIVE:
+                testCase.setCurrentStatus(TestStageStatus.CONFIRM_NEGATIVE);
+                break;
+        }
         testCase.setLastChangeDate(currentDateSupplier.get());
     }
 
@@ -84,8 +99,8 @@ public class TestService {
                 .icdCode(testToCreate.icdCode)
                 .lastChangeDate(currentDateSupplier.get())
                 .writeId(UUID.randomUUID().toString())
-                .currentResult(TestResult.UNKNOWN)
-                .currentStatus(TestStatus.IN_PROGRESS)
+                .gracePeriodMinutes(gracePeriod)
+                .currentStatus(TestStageStatus.ISSUED)
                 .build();
     }
 }
