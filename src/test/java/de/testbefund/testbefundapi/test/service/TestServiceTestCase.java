@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
@@ -60,7 +61,7 @@ public class TestServiceTestCase {
     @Test
     void shouldCreateTests_withClient() {
         Client client = Client.builder().id("ID1234").name("Client").build();
-        Mockito.when(clientRepository.getOne("ID1234")).thenReturn(client);
+        Mockito.when(clientRepository.findById("ID1234")).thenReturn(Optional.of(client));
         TestToCreate testToCreate = TestToCreate.builder().title("Title").clientId("ID1234").build();
         TestContainer testContainer = testService.createTestContainer(List.of(testToCreate));
         assertThat(testContainer.getTestCases())

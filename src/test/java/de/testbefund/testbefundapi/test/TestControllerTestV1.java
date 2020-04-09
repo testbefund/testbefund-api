@@ -1,5 +1,7 @@
 package de.testbefund.testbefundapi.test;
 
+import de.testbefund.testbefundapi.client.data.Client;
+import de.testbefund.testbefundapi.client.data.ClientRepository;
 import de.testbefund.testbefundapi.test.data.TestCase;
 import de.testbefund.testbefundapi.test.data.TestContainer;
 import de.testbefund.testbefundapi.test.data.TestResult;
@@ -8,6 +10,7 @@ import de.testbefund.testbefundapi.test.dto.TestContainerReadT;
 import de.testbefund.testbefundapi.test.dto.TestToCreate;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.HttpMethod;
@@ -26,6 +29,9 @@ import static org.assertj.core.api.Assertions.*;
 class TestControllerTestV1 {
 
     private RestTemplate restTemplate = new RestTemplate();
+
+    @Autowired
+    private ClientRepository clientRepository;
 
     @LocalServerPort
     private int port;
@@ -95,5 +101,29 @@ class TestControllerTestV1 {
         HttpClientErrorException exception = catchThrowableOfType(() -> restTemplate.postForEntity(baseUri() + "/container", createTestContainerRequest, TestContainer.class), HttpClientErrorException.class);
         assertThat(exception).isNotNull();
         assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    public void shouldCreateTestCase_withClient() {
+        Client client = Client.builder().name("Test")
+                .address("Testweg 1")
+                .email("test@test.test")
+                .telefon("0123456789")
+                .homepage("home.page")
+                .openingHours("10-19h")
+                .build();
+        client = clientRepository.saveAndFlush(client);
+        CreateTestContainerRequest createTestContainerRequest = new CreateTestContainerRequest();
+        createTestContainerRequest.testRequests = List.of(TestToCreate.builder().title("Title").clientId(client.getId()).build());
+
+        RequestEntity<CreateTestContainerRequest> request = RequestEntity.post(URI.create(baseUri() + "/container"))
+                .header("Authorization", "Basic dGVzdDp0ZXN0") // user=test, password=test
+                .body(createTestContainerRequest);
+        ResponseEntity<TestContainer> response = restTemplate.exchange(request, TestContainer.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getTestCases())
+                .extracting(testCase -> testCase.getClient().getId())
+                .containsExactly(client.getId());
     }
 }

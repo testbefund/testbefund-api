@@ -64,7 +64,7 @@ public class TestService {
 
     private TestCase toTestCaseForTitle(TestToCreate testToCreate) {
         Client client = Optional.ofNullable(testToCreate.clientId)
-                .map(clientRepository::getOne)
+                .flatMap(clientRepository::findById)
                 .orElse(null);
         return TestCase.builder()
                 .title(testToCreate.title)
