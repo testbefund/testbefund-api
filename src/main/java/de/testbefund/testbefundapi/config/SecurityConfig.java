@@ -32,6 +32,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.authorizeRequests()
                 .antMatchers(HttpMethod.POST, "/v1/test/container")
                     .authenticated()
+                .antMatchers(HttpMethod.GET, "/v1/test/auth")
+                    .authenticated()
                 .antMatchers("/v1/test/**")
                     .permitAll()
                 .antMatchers("/client/**")

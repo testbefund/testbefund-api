@@ -26,6 +26,12 @@ public class TestControllerV1 {
     @Autowired
     private TestService testService;
 
+
+    @GetMapping(value = "/auth")
+    public ResponseEntity<Void> isAuthenticated() {
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping(value = "/container", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<TestContainer> createTestContainer(@RequestBody CreateTestContainerRequest request) {
         TestContainer testContainer = testService.createTestContainer(request.testRequests);
