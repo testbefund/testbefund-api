@@ -14,3 +14,5 @@ spring:
 testbefund:
   user: ${APP_USER:user}
   pass: ${APP_PASS:pass}
+  allowed-origins: "http://localhost:3000,http://localhost:8080"
+  allowed-headers: "authorization,x-requested-with"

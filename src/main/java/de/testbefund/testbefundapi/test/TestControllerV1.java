@@ -18,7 +18,6 @@ import static org.springframework.http.ResponseEntity.noContent;
 import static org.springframework.http.ResponseEntity.notFound;
 
 @RestController
-@CrossOrigin(origins = "*") // For now we'll allow "*"
 @RequestMapping("/v1/test/")
 @EnableWebSecurity
 public class TestControllerV1 {
