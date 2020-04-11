@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   labels:
     app: testbefund
-  name: testbefund-db
+  name: sqldb
 spec:
   replicas: 1
   selector:
@@ -17,17 +17,23 @@ spec:
         app: testbefund
     spec:
       containers:
-      - name: testbefund-db
+      - name: sqldb
         image: postgres
+        ports:
+          - containerPort: 5432
         env:
+        - name: POSTGRES_DB
+          value: testbefund
         - name: POSTGRES_PASSWORD
-          value: password
+          value: postgresql
+        - name: POSTGRES_USER
+          value: postgresql
         volumeMounts:
         - mountPath: /var/lib/postgresql/data
-          name: testbefund-db-data
+          name: sqldb-data
       restartPolicy: Always
       volumes:
-      - name: testbefund-db-data
+      - name: sqldb-data
         persistentVolumeClaim:
-          claimName: testbefund-db-data
+          claimName: sqldb-data
 status: {}

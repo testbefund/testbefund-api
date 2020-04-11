@@ -1,5 +1,6 @@
 resources:
-  - base/testbefund-api-service.yaml
-  - base/testbefund-db-deployment.yaml
-  - base/testbefund-api-deployment.yaml
-  - base/testbefund-db-data-persistentvolumeclaim.yaml
+  - base/api-service.yaml
+  - base/sqldb-deployment.yaml
+  - base/api-deployment.yaml
+  - base/sqldb-pvc.yaml
+  - base/sqldb-service.yaml

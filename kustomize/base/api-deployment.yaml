@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   labels:
     app: testbefund
-  name: testbefund-api
+  name: api
 spec:
   replicas: 1
   selector:
@@ -17,7 +17,7 @@ spec:
         app: testbefund
     spec:
       containers:
-      - name: testbefund-api
+      - name: api
         image: testbefund/api:master
         ports:
         - containerPort: 8080
@@ -25,10 +25,14 @@ spec:
         - name: DB_DRIVER_CLASS_NAME
           value: org.postgresql.Driver
         - name: DB_PASS
-          value: password
+          value: postgresql
         - name: DB_URL
-          value: jdbc:postgresql://testbefund-db:5432/postgres
+          value: jdbc:postgresql://sqldb:5432/testbefund
         - name: DB_USER
-          value: postgres
+          value: postgresql
+        - name: APP_USER
+          value: testbefund
+        - name: APP_PASSWORD
+          value: testbefund
       restartPolicy: Always
 status: {}
