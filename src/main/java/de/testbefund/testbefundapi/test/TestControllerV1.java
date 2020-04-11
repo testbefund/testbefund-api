@@ -18,13 +18,18 @@ import static org.springframework.http.ResponseEntity.noContent;
 import static org.springframework.http.ResponseEntity.notFound;
 
 @RestController
-@CrossOrigin(origins = "*") // For now we'll allow "*"
 @RequestMapping("/v1/test/")
 @EnableWebSecurity
 public class TestControllerV1 {
 
     @Autowired
     private TestService testService;
+
+
+    @GetMapping(value = "/auth")
+    public ResponseEntity<Void> isAuthenticated() {
+        return ResponseEntity.noContent().build();
+    }
 
     @PostMapping(value = "/container", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<TestContainer> createTestContainer(@RequestBody CreateTestContainerRequest request) {

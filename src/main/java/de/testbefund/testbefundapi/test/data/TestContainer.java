@@ -29,5 +29,6 @@ public class TestContainer {
     @Column(name = "date")
     private LocalDateTime date;
     @OneToMany(cascade = ALL, orphanRemoval = true)
+    @JoinColumn(name = "test_container_id")
     private Collection<TestCase> testCases;
 }
