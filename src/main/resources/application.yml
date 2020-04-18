@@ -15,3 +15,5 @@ testbefund:
   user: ${APP_USER:user}
   pass: ${APP_PASS:pass}
   grace-period-in-minutes: 20
+  allowed-origins: "http://localhost:3000,http://localhost:8080"
+  allowed-headers: "authorization,x-requested-with"
