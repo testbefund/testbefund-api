@@ -1,9 +1,7 @@
 package de.testbefund.testbefundapi.test.service;
 
-import de.testbefund.testbefundapi.test.data.TestCase;
-import de.testbefund.testbefundapi.test.data.TestContainer;
-import de.testbefund.testbefundapi.test.data.TestContainerRepository;
-import de.testbefund.testbefundapi.test.data.TestResult;
+import de.testbefund.testbefundapi.test.data.*;
+import de.testbefund.testbefundapi.test.dto.TestResultT;
 import de.testbefund.testbefundapi.test.dto.TestToCreate;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.Test;
@@ -49,11 +47,11 @@ class TestServiceITest {
     public void shouldCreateTestCase_andWriteItByWriteId() {
         TestContainer savedContainer = testService.createTestContainer(List.of(TestToCreate.builder().title("Test").build()));
         TestCase testCase = savedContainer.getTestCases().iterator().next();
-        testService.updateTestByWriteId(testCase.getWriteId(), TestResult.POSITIVE);
+        testService.updateTestByWriteId(testCase.getWriteId(), TestResultT.POSITIVE);
         Optional<TestContainer> persistentContainer = testService.getContainerByReadId(savedContainer.getReadId());
         assertThat(persistentContainer).isPresent();
         assertThat(persistentContainer.get().getTestCases())
-                .extracting(TestCase::getTitle, TestCase::getResult)
-                .containsExactly(Tuple.tuple("Test", TestResult.POSITIVE));
+                .extracting(TestCase::getTitle, TestCase::getCurrentStatus)
+                .containsExactly(Tuple.tuple("Test", TestStageStatus.CONFIRM_POSITIVE));
     }
 }

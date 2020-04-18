@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Data
 @Entity
@@ -29,13 +30,16 @@ public class TestCase {
     @Column(name = "title")
     private String title;
 
-    @Enumerated()
-    @Column(name = "result")
-    private TestResult result;
+    @Column(name = "grace_period_minutes", nullable = false)
+    @Builder.Default
+    private int gracePeriodMinutes = 20;
 
-    @Enumerated()
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private TestStatus status;
+    private TestStageStatus currentStatus;
+
+    @Column(name = "last_change_date")
+    private LocalDateTime lastChangeDate;
 
     @Column(name = "icd_code")
     private String icdCode;

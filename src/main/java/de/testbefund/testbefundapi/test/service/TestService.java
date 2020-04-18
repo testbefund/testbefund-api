@@ -3,8 +3,11 @@ package de.testbefund.testbefundapi.test.service;
 import de.testbefund.testbefundapi.client.data.Client;
 import de.testbefund.testbefundapi.client.data.ClientRepository;
 import de.testbefund.testbefundapi.test.data.*;
+import de.testbefund.testbefundapi.test.dto.TestResultT;
 import de.testbefund.testbefundapi.test.dto.TestToCreate;
 import de.testbefund.testbefundapi.test.error.NoTestCaseFoundException;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -13,6 +16,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,10 +28,20 @@ public class TestService {
 
     private final ClientRepository clientRepository;
 
-    public TestService(TestContainerRepository testContainerRepository, TestRepository testRepository, ClientRepository clientRepository) {
+    private final Supplier<LocalDateTime> currentDateSupplier;
+
+    @Value("${testbefund.grace-period-in-minutes}")
+    int gracePeriod = 20;
+
+    public TestService(TestContainerRepository testContainerRepository,
+                       TestRepository testRepository,
+                       ClientRepository clientRepository,
+                       @Qualifier("currentDateSupplier") Supplier<LocalDateTime> currentDateSupplier
+    ) {
         this.testContainerRepository = testContainerRepository;
         this.testRepository = testRepository;
         this.clientRepository = clientRepository;
+        this.currentDateSupplier = currentDateSupplier;
     }
 
     @Transactional
@@ -45,12 +59,25 @@ public class TestService {
     }
 
     @Transactional
-    public void updateTestByWriteId(String writeId, TestResult testResult) {
+    public void updateTestByWriteId(String writeId, TestResultT result) {
         testRepository.findByWriteId(writeId)
-                .ifPresentOrElse(testCase -> testCase.setResult(testResult), this::throwNoTestCaseFound);
-
+                .ifPresentOrElse(testCase -> updateTestCase(result, testCase), this::throwNoTestCaseFound);
     }
 
+    private void updateTestCase(TestResultT testResult, TestCase testCase) {
+        switch (testResult) {
+            case UNKNOWN:
+                testCase.setCurrentStatus(TestStageStatus.ISSUED);
+                break;
+            case POSITIVE:
+                testCase.setCurrentStatus(TestStageStatus.CONFIRM_POSITIVE);
+                break;
+            case NEGATIVE:
+                testCase.setCurrentStatus(TestStageStatus.CONFIRM_NEGATIVE);
+                break;
+        }
+        testCase.setLastChangeDate(currentDateSupplier.get());
+    }
 
     private void throwNoTestCaseFound() {
         throw new NoTestCaseFoundException();
@@ -70,9 +97,10 @@ public class TestService {
                 .title(testToCreate.title)
                 .client(client)
                 .icdCode(testToCreate.icdCode)
+                .lastChangeDate(currentDateSupplier.get())
                 .writeId(UUID.randomUUID().toString())
-                .result(TestResult.UNKNOWN)
-                .status(TestStatus.IN_PROGRESS)
+                .gracePeriodMinutes(gracePeriod)
+                .currentStatus(TestStageStatus.ISSUED)
                 .build();
     }
 }

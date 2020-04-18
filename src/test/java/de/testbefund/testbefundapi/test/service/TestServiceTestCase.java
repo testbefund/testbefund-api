@@ -3,6 +3,7 @@ package de.testbefund.testbefundapi.test.service;
 import de.testbefund.testbefundapi.client.data.Client;
 import de.testbefund.testbefundapi.client.data.ClientRepository;
 import de.testbefund.testbefundapi.test.data.*;
+import de.testbefund.testbefundapi.test.dto.TestResultT;
 import de.testbefund.testbefundapi.test.dto.TestToCreate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,8 +11,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
@@ -19,7 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-public class TestServiceTestCase {
+class TestServiceTestCase {
 
     @InjectMocks
     private TestService testService;
@@ -29,6 +32,12 @@ public class TestServiceTestCase {
 
     @Mock
     private ClientRepository clientRepository;
+
+    @Mock
+    private Supplier<LocalDateTime> currentDateSupplier;
+
+    @Mock
+    private TestRepository testRepository;
 
     @BeforeEach
     void setUp() {
@@ -54,8 +63,7 @@ public class TestServiceTestCase {
         TestCase testCase = testContainer.getTestCases().iterator().next();
         assertThat(testCase.getId()).isNull(); // Filled in by auto generation
         assertThat(testCase.getWriteId()).isNotNull();
-        assertThat(testCase.getResult()).isEqualTo(TestResult.UNKNOWN);
-        assertThat(testCase.getStatus()).isEqualTo(TestStatus.IN_PROGRESS);
+        assertThat(testCase.getCurrentStatus()).isEqualTo(TestStageStatus.ISSUED);
     }
 
     @Test
@@ -70,7 +78,7 @@ public class TestServiceTestCase {
     }
 
     @Test
-    public void shouldCreateTest_withICDCode() {
+    void shouldCreateTest_withICDCode() {
         TestToCreate testToCreate = TestToCreate.builder().title("Title").icdCode("icd1234").build();
         TestContainer testContainer = testService.createTestContainer(List.of(testToCreate));
         assertThat(testContainer.getTestCases())
@@ -82,5 +90,51 @@ public class TestServiceTestCase {
     void shouldPersistTestContainer() {
         TestContainer testContainer = testService.createTestContainer(List.of(TestToCreate.builder().title("TitleA").build()));
         Mockito.verify(testContainerRepository, times(1)).save(testContainer);
+    }
+
+    @Test
+    void shouldCreateTests_withCurrentTimeStamp() {
+        LocalDateTime currentDate = LocalDateTime.now();
+        Mockito.when(currentDateSupplier.get()).thenReturn(currentDate);
+        TestContainer testContainer = testService.createTestContainer(List.of(TestToCreate.builder().title("TitleA").build()));
+        assertThat(testContainer.getTestCases())
+                .extracting(TestCase::getLastChangeDate)
+                .containsExactly(currentDate);
+    }
+
+    private TestCase withPersistentTestCase() {
+        TestCase testCase = TestCase.builder()
+                .title("SARS-CoV2")
+                .client(new Client())
+                .icdCode("1234")
+                .lastChangeDate(LocalDateTime.now())
+                .writeId("ABCD-1234")
+                .currentStatus(TestStageStatus.ISSUED)
+                .build();
+        Mockito.when(testRepository.findByWriteId(testCase.getWriteId())).thenReturn(Optional.of(testCase));
+        return testCase;
+    }
+
+    @Test
+    void whenUpdatingTest_shouldUpdateTimeStamp() {
+        LocalDateTime currentDate = LocalDateTime.now();
+        Mockito.when(currentDateSupplier.get()).thenReturn(currentDate);
+        TestCase testCase = withPersistentTestCase();
+        testService.updateTestByWriteId(testCase.getWriteId(), TestResultT.NEGATIVE);
+        assertThat(testCase.getLastChangeDate()).isEqualTo(currentDate);
+    }
+
+    @Test
+    void whenUpdatingTest_shouldSetCorrectStatusForNegative() {
+        TestCase testCase = withPersistentTestCase();
+        testService.updateTestByWriteId(testCase.getWriteId(), TestResultT.NEGATIVE);
+        assertThat(testCase.getCurrentStatus()).isEqualTo(TestStageStatus.CONFIRM_NEGATIVE);
+    }
+
+    @Test
+    void whenUpdatingTest_shouldSetCorrectStatusForPositive() {
+        TestCase testCase = withPersistentTestCase();
+        testService.updateTestByWriteId(testCase.getWriteId(), TestResultT.POSITIVE);
+        assertThat(testCase.getCurrentStatus()).isEqualTo(TestStageStatus.CONFIRM_POSITIVE);
     }
 }
