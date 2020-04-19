@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import static de.testbefund.testbefundapi.test.dto.TestToCreate.builder;
+import static java.util.List.of;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
@@ -24,7 +26,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 class TestServiceTestCase {
 
-    @InjectMocks
     private TestService testService;
 
     @Mock
@@ -39,17 +40,21 @@ class TestServiceTestCase {
     @Mock
     private TestRepository testRepository;
 
+    @Mock
+    private Supplier<String> idProvider;
+
     @BeforeEach
     void setUp() {
         initMocks(this);
+        testService = new TestService(testContainerRepository, testRepository, clientRepository, currentDateSupplier, idProvider);
         Mockito.when(testContainerRepository.save(any())).thenAnswer(returnsFirstArg());
     }
 
     @Test
     void shouldCreateTestContainer_withAllProvidedTests() {
-        TestContainer testContainer = testService.createTestContainer(List.of(
-                TestToCreate.builder().title("TitleA").build(),
-                TestToCreate.builder().title("TitleB").build()
+        TestContainer testContainer = testService.createTestContainer(of(
+                builder().title("TitleA").build(),
+                builder().title("TitleB").build()
         ));
         assertThat(testContainer.getTestCases())
                 .extracting(TestCase::getTitle)
@@ -58,11 +63,10 @@ class TestServiceTestCase {
 
     @Test
     void shouldInitializeTests_withCorrectData() {
-        TestContainer testContainer = testService.createTestContainer(List.of(TestToCreate.builder().title("TitleA").build()));
+        TestContainer testContainer = testService.createTestContainer(of(builder().title("TitleA").build()));
         assertThat(testContainer.getTestCases()).hasSize(1);
         TestCase testCase = testContainer.getTestCases().iterator().next();
         assertThat(testCase.getId()).isNull(); // Filled in by auto generation
-        assertThat(testCase.getWriteId()).isNotNull();
         assertThat(testCase.getCurrentStatus()).isEqualTo(TestStageStatus.ISSUED);
     }
 
@@ -70,8 +74,8 @@ class TestServiceTestCase {
     void shouldCreateTests_withClient() {
         Client client = Client.builder().id("ID1234").name("Client").build();
         Mockito.when(clientRepository.findById("ID1234")).thenReturn(Optional.of(client));
-        TestToCreate testToCreate = TestToCreate.builder().title("Title").clientId("ID1234").build();
-        TestContainer testContainer = testService.createTestContainer(List.of(testToCreate));
+        TestToCreate testToCreate = builder().title("Title").clientId("ID1234").build();
+        TestContainer testContainer = testService.createTestContainer(of(testToCreate));
         assertThat(testContainer.getTestCases())
                 .extracting(TestCase::getClient)
                 .containsExactly(client);
@@ -79,8 +83,8 @@ class TestServiceTestCase {
 
     @Test
     void shouldCreateTest_withICDCode() {
-        TestToCreate testToCreate = TestToCreate.builder().title("Title").icdCode("icd1234").build();
-        TestContainer testContainer = testService.createTestContainer(List.of(testToCreate));
+        TestToCreate testToCreate = builder().title("Title").icdCode("icd1234").build();
+        TestContainer testContainer = testService.createTestContainer(of(testToCreate));
         assertThat(testContainer.getTestCases())
                 .extracting(TestCase::getIcdCode)
                 .containsExactly("icd1234");
@@ -88,7 +92,7 @@ class TestServiceTestCase {
 
     @Test
     void shouldPersistTestContainer() {
-        TestContainer testContainer = testService.createTestContainer(List.of(TestToCreate.builder().title("TitleA").build()));
+        TestContainer testContainer = testService.createTestContainer(of(builder().title("TitleA").build()));
         Mockito.verify(testContainerRepository, times(1)).save(testContainer);
     }
 
@@ -96,7 +100,7 @@ class TestServiceTestCase {
     void shouldCreateTests_withCurrentTimeStamp() {
         LocalDateTime currentDate = LocalDateTime.now();
         Mockito.when(currentDateSupplier.get()).thenReturn(currentDate);
-        TestContainer testContainer = testService.createTestContainer(List.of(TestToCreate.builder().title("TitleA").build()));
+        TestContainer testContainer = testService.createTestContainer(of(builder().title("TitleA").build()));
         assertThat(testContainer.getTestCases())
                 .extracting(TestCase::getLastChangeDate)
                 .containsExactly(currentDate);
@@ -136,5 +140,15 @@ class TestServiceTestCase {
         TestCase testCase = withPersistentTestCase();
         testService.updateTestByWriteId(testCase.getWriteId(), TestResultT.POSITIVE);
         assertThat(testCase.getCurrentStatus()).isEqualTo(TestStageStatus.CONFIRM_POSITIVE);
+    }
+
+    @Test
+    void shouldUseIdProvider() {
+        Mockito.when(idProvider.get()).thenReturn("ABCDE");
+        TestContainer testContainer = testService.createTestContainer(of(builder().title("TitleA").build()));
+        assertThat(testContainer.getReadId()).isEqualTo("ABCDE");
+        assertThat(testContainer.getTestCases())
+                .extracting(TestCase::getWriteId)
+                .containsExactly("ABCDE");
     }
 }

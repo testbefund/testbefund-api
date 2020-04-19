@@ -18,6 +18,9 @@ THe following environment variables are available and not mandatory.
 * ``DB_DRIVER_CLASS_NAME`` is the java class name for the JDBC driver. Defaults to ``org.postgresql.Driver``
 * ``HIBERNATE_DDL_AUTO`` Defines the schema update policy. Defaults to ``update``
 
+Additionally, you may overwrite any property defined by spring or defined in the application.yml via environment variables
+by substituting dots ('.') with underscores ('_'), e.g ``TESTBEFUND_USER`` for ``testbefund.user``
+
 ## API
 The API can be explored with swagger-ui. 
 1. Start the service, either with docker-compose or as Spring Boot run configuration

@@ -30,18 +30,21 @@ public class TestService {
 
     private final Supplier<LocalDateTime> currentDateSupplier;
 
+    private final Supplier<String> idProvider;
+
     @Value("${testbefund.grace-period-in-minutes}")
     int gracePeriod = 20;
 
     public TestService(TestContainerRepository testContainerRepository,
                        TestRepository testRepository,
                        ClientRepository clientRepository,
-                       @Qualifier("currentDateSupplier") Supplier<LocalDateTime> currentDateSupplier
-    ) {
+                       @Qualifier("currentDateSupplier") Supplier<LocalDateTime> currentDateSupplier,
+                       @Qualifier("idProvider") Supplier<String> idProvider) {
         this.testContainerRepository = testContainerRepository;
         this.testRepository = testRepository;
         this.clientRepository = clientRepository;
         this.currentDateSupplier = currentDateSupplier;
+        this.idProvider = idProvider;
     }
 
     @Transactional
@@ -49,7 +52,7 @@ public class TestService {
         TestContainer container = TestContainer.builder()
                 .testCases(testCasesOf(testTitles))
                 .date(LocalDateTime.now())
-                .readId(UUID.randomUUID().toString())
+                .readId(idProvider.get())
                 .build();
         return testContainerRepository.save(container);
     }
@@ -98,7 +101,7 @@ public class TestService {
                 .client(client)
                 .icdCode(testToCreate.icdCode)
                 .lastChangeDate(currentDateSupplier.get())
-                .writeId(UUID.randomUUID().toString())
+                .writeId(idProvider.get())
                 .gracePeriodMinutes(gracePeriod)
                 .currentStatus(TestStageStatus.ISSUED)
                 .build();
