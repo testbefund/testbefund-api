@@ -27,7 +27,7 @@ public class TestCase {
     @Column(name = "title")
     private String title;
 
-    @Column(name = "grace_period_minutes", nullable = false)
+    @Column(name = "grace_period_minutes", nullable = false, columnDefinition = "integer not null default 20")
     @Builder.Default
     private int gracePeriodMinutes = 20;
 
