@@ -26,6 +26,8 @@ public class TestContainer {
     private String id;
     @Column(name = "read_id", unique = true, updatable = false)
     private String readId;
+    @Column(name = "write_id", unique = true, updatable = false)
+    private String writeId;
     @Column(name = "date")
     private LocalDateTime date;
     @OneToMany(cascade = ALL, orphanRemoval = true)

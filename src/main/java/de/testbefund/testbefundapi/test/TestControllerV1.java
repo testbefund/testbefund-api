@@ -1,10 +1,7 @@
 package de.testbefund.testbefundapi.test;
 
 import de.testbefund.testbefundapi.test.data.TestContainer;
-import de.testbefund.testbefundapi.test.dto.CreateTestContainerRequest;
-import de.testbefund.testbefundapi.test.dto.TestContainerReadT;
-import de.testbefund.testbefundapi.test.dto.TestReadMapper;
-import de.testbefund.testbefundapi.test.dto.TestResultT;
+import de.testbefund.testbefundapi.test.dto.*;
 import de.testbefund.testbefundapi.test.service.TestService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -49,9 +46,18 @@ public class TestControllerV1 {
                 .orElse(notFound().build());
     }
 
-    @PostMapping(value = "/testcase/{write_id}/{test_result}")
-    public ResponseEntity updateTestByWriteId(@PathVariable("write_id") String writeId, @PathVariable("test_result") TestResultT testResult) {
-        testService.updateTestByWriteId(writeId, testResult);
+    @GetMapping(value = "/container/write/{write_id}")
+    public ResponseEntity<TestContainerWriteT> getTestContainerByWriteId(@PathVariable("write_id") String writeId) {
+        Optional<TestContainer> containerByReadId = testService.getContainerByWriteId(writeId);
+        return containerByReadId
+                .map(TestWriteMapper.MAPPER::mapOne)
+                .map(ResponseEntity::ok)
+                .orElse(notFound().build());
+    }
+
+    @PostMapping(value = "/container/{write_id}/testcase/{test_id}/{test_result}")
+    public ResponseEntity updateTestByWriteId(@PathVariable("write_id") String writeId, @PathVariable("test_id") String testId, @PathVariable("test_result") TestResultT testResult) {
+        testService.updateTestByWriteId(writeId, testId, testResult);
         return noContent().build();
     }
 }

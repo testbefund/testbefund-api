@@ -15,7 +15,6 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -23,8 +22,6 @@ import java.util.stream.Collectors;
 public class TestService {
 
     private final TestContainerRepository testContainerRepository;
-
-    private final TestRepository testRepository;
 
     private final ClientRepository clientRepository;
 
@@ -36,12 +33,10 @@ public class TestService {
     int gracePeriod = 20;
 
     public TestService(TestContainerRepository testContainerRepository,
-                       TestRepository testRepository,
                        ClientRepository clientRepository,
                        @Qualifier("currentDateSupplier") Supplier<LocalDateTime> currentDateSupplier,
                        @Qualifier("idProvider") Supplier<String> idProvider) {
         this.testContainerRepository = testContainerRepository;
-        this.testRepository = testRepository;
         this.clientRepository = clientRepository;
         this.currentDateSupplier = currentDateSupplier;
         this.idProvider = idProvider;
@@ -53,6 +48,7 @@ public class TestService {
                 .testCases(testCasesOf(testTitles))
                 .date(LocalDateTime.now())
                 .readId(idProvider.get())
+                .writeId(idProvider.get())
                 .build();
         return testContainerRepository.save(container);
     }
@@ -61,9 +57,21 @@ public class TestService {
         return testContainerRepository.findByReadId(readId);
     }
 
+    public Optional<TestContainer> getContainerByWriteId(String writeId) {
+        return testContainerRepository.findByWriteId(writeId);
+    }
+
     @Transactional
-    public void updateTestByWriteId(String writeId, TestResultT result) {
-        testRepository.findByWriteId(writeId)
+    public void updateTestByWriteId(String writeId, String testId, TestResultT result) {
+        testContainerRepository.findByWriteId(writeId)
+                .ifPresentOrElse(container -> updateTestContainer(container, testId, result), this::throwNoTestCaseFound);
+    }
+
+    private void updateTestContainer(TestContainer testContainer, String testId, TestResultT result) {
+        testContainer.getTestCases()
+                .stream()
+                .filter(testCase -> testCase.getId().equals(testId))
+                .findAny()
                 .ifPresentOrElse(testCase -> updateTestCase(result, testCase), this::throwNoTestCaseFound);
     }
 
@@ -101,7 +109,6 @@ public class TestService {
                 .client(client)
                 .icdCode(testToCreate.icdCode)
                 .lastChangeDate(currentDateSupplier.get())
-                .writeId(idProvider.get())
                 .gracePeriodMinutes(gracePeriod)
                 .currentStatus(TestStageStatus.ISSUED)
                 .build();

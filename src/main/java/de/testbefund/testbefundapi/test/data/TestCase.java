@@ -24,9 +24,6 @@ public class TestCase {
     @GenericGenerator(name = "uuid", strategy = "uuid2")
     private String id;
 
-    @Column(name = "id_write")
-    private String writeId;
-
     @Column(name = "title")
     private String title;
 

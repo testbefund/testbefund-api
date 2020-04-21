@@ -47,7 +47,7 @@ class TestServiceITest {
     public void shouldCreateTestCase_andWriteItByWriteId() {
         TestContainer savedContainer = testService.createTestContainer(List.of(TestToCreate.builder().title("Test").build()));
         TestCase testCase = savedContainer.getTestCases().iterator().next();
-        testService.updateTestByWriteId(testCase.getWriteId(), TestResultT.POSITIVE);
+        testService.updateTestByWriteId(savedContainer.getWriteId(), testCase.getId(), TestResultT.POSITIVE);
         Optional<TestContainer> persistentContainer = testService.getContainerByReadId(savedContainer.getReadId());
         assertThat(persistentContainer).isPresent();
         assertThat(persistentContainer.get().getTestCases())

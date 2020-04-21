@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface TestContainerRepository extends JpaRepository<TestContainer, String> {
 
     Optional<TestContainer> findByReadId(String readId);
+    Optional<TestContainer> findByWriteId(String writeId);
 }

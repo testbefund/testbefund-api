@@ -38,15 +38,12 @@ class TestServiceTestCase {
     private Supplier<LocalDateTime> currentDateSupplier;
 
     @Mock
-    private TestRepository testRepository;
-
-    @Mock
     private Supplier<String> idProvider;
 
     @BeforeEach
     void setUp() {
         initMocks(this);
-        testService = new TestService(testContainerRepository, testRepository, clientRepository, currentDateSupplier, idProvider);
+        testService = new TestService(testContainerRepository, clientRepository, currentDateSupplier, idProvider);
         Mockito.when(testContainerRepository.save(any())).thenAnswer(returnsFirstArg());
     }
 
@@ -106,16 +103,20 @@ class TestServiceTestCase {
                 .containsExactly(currentDate);
     }
 
-    private TestCase withPersistentTestCase() {
+    private TestCase withPersistentTestCase(String writeId) {
         TestCase testCase = TestCase.builder()
                 .title("SARS-CoV2")
+                .id("1234")
                 .client(new Client())
                 .icdCode("1234")
                 .lastChangeDate(LocalDateTime.now())
-                .writeId("ABCD-1234")
                 .currentStatus(TestStageStatus.ISSUED)
                 .build();
-        Mockito.when(testRepository.findByWriteId(testCase.getWriteId())).thenReturn(Optional.of(testCase));
+        TestContainer testContainer = TestContainer.builder()
+                .testCases(List.of(testCase))
+                .writeId(writeId)
+                .build();
+        Mockito.when(testContainerRepository.findByWriteId(testContainer.getWriteId())).thenReturn(Optional.of(testContainer));
         return testCase;
     }
 
@@ -123,22 +124,22 @@ class TestServiceTestCase {
     void whenUpdatingTest_shouldUpdateTimeStamp() {
         LocalDateTime currentDate = LocalDateTime.now();
         Mockito.when(currentDateSupplier.get()).thenReturn(currentDate);
-        TestCase testCase = withPersistentTestCase();
-        testService.updateTestByWriteId(testCase.getWriteId(), TestResultT.NEGATIVE);
+        TestCase testCase = withPersistentTestCase("ABCD");
+        testService.updateTestByWriteId("ABCD", testCase.getId(), TestResultT.NEGATIVE);
         assertThat(testCase.getLastChangeDate()).isEqualTo(currentDate);
     }
 
     @Test
     void whenUpdatingTest_shouldSetCorrectStatusForNegative() {
-        TestCase testCase = withPersistentTestCase();
-        testService.updateTestByWriteId(testCase.getWriteId(), TestResultT.NEGATIVE);
+        TestCase testCase = withPersistentTestCase("ABCDE");
+        testService.updateTestByWriteId("ABCDE", testCase.getId(), TestResultT.NEGATIVE);
         assertThat(testCase.getCurrentStatus()).isEqualTo(TestStageStatus.CONFIRM_NEGATIVE);
     }
 
     @Test
     void whenUpdatingTest_shouldSetCorrectStatusForPositive() {
-        TestCase testCase = withPersistentTestCase();
-        testService.updateTestByWriteId(testCase.getWriteId(), TestResultT.POSITIVE);
+        TestCase testCase = withPersistentTestCase("ABCDE");
+        testService.updateTestByWriteId("ABCDE", testCase.getId(), TestResultT.POSITIVE);
         assertThat(testCase.getCurrentStatus()).isEqualTo(TestStageStatus.CONFIRM_POSITIVE);
     }
 
@@ -147,8 +148,12 @@ class TestServiceTestCase {
         Mockito.when(idProvider.get()).thenReturn("ABCDE");
         TestContainer testContainer = testService.createTestContainer(of(builder().title("TitleA").build()));
         assertThat(testContainer.getReadId()).isEqualTo("ABCDE");
-        assertThat(testContainer.getTestCases())
-                .extracting(TestCase::getWriteId)
-                .containsExactly("ABCDE");
+    }
+
+    @Test
+    void shouldAttachWriteId_toContainer() {
+        Mockito.when(idProvider.get()).thenReturn("ABCDE");
+        TestContainer testContainer = testService.createTestContainer(of(builder().title("TitleA").build()));
+        assertThat(testContainer.getWriteId()).isEqualTo("ABCDE");
     }
 }

@@ -2,11 +2,10 @@ package de.testbefund.testbefundapi.test;
 
 import de.testbefund.testbefundapi.client.data.Client;
 import de.testbefund.testbefundapi.client.data.ClientRepository;
+import de.testbefund.testbefundapi.test.data.TestCase;
 import de.testbefund.testbefundapi.test.data.TestContainer;
-import de.testbefund.testbefundapi.test.dto.CreateTestContainerRequest;
-import de.testbefund.testbefundapi.test.dto.TestContainerReadT;
-import de.testbefund.testbefundapi.test.dto.TestResultT;
-import de.testbefund.testbefundapi.test.dto.TestToCreate;
+import de.testbefund.testbefundapi.test.data.TestStageStatus;
+import de.testbefund.testbefundapi.test.dto.*;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +15,7 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
@@ -76,7 +76,8 @@ class TestControllerTestV1 {
     void shouldUpdateContainer() {
         TestContainer container = createSampleContainer().getBody();
         assertThat(container).isNotNull();
-        String uri = String.format("/testcase/%s/%s", container.getTestCases().iterator().next().getWriteId(), TestResultT.NEGATIVE);
+        TestCase testCase = container.getTestCases().iterator().next();
+        String uri = String.format("/container/%s/testcase/%s/%s", container.getWriteId(), testCase.getId(), TestResultT.NEGATIVE);
         ResponseEntity<String> response = restTemplate.postForEntity(baseUri() + uri, null, String.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
         TestContainerReadT readContainer = getContainerByReadId(container.getReadId());
@@ -126,5 +127,17 @@ class TestControllerTestV1 {
         assertThat(response.getBody().getTestCases())
                 .extracting(testCase -> testCase.getClient().getId())
                 .containsExactly(client.getId());
+    }
+
+    @Test
+    void shouldGetContainer_byWriteId() {
+        TestContainer container = createSampleContainer().getBody();
+        assertThat(container).isNotNull();
+        String uri = String.format("/container/write/%s", container.getWriteId());
+        ResponseEntity<TestContainerWriteT> testContainer = restTemplate.getForEntity(baseUri() + uri, TestContainerWriteT.class);
+        assertThat(testContainer.getBody().writeId).isEqualTo(container.getWriteId());
+        assertThat(testContainer.getBody().testCases)
+                .extracting(testCase -> testCase.title, testCase -> testCase.icdCode)
+                .containsExactly(Tuple.tuple("Test", "ICD1234"));
     }
 }
