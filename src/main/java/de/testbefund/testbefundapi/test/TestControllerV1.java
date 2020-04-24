@@ -60,4 +60,10 @@ public class TestControllerV1 {
         testService.updateTestByWriteId(writeId, testId, testResult);
         return noContent().build();
     }
+
+    @PostMapping(value = "/container/batch-update", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity<TestContainerWriteT> updateContainerBatch(@RequestBody UpdateTestRequest request) {
+        TestContainerWriteT result = TestWriteMapper.MAPPER.mapOne(testService.updateTestContainer(request));
+        return ResponseEntity.ok(result);
+    }
 }

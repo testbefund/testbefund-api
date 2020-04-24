@@ -10,19 +10,16 @@ import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -135,9 +132,42 @@ class TestControllerTestV1 {
         assertThat(container).isNotNull();
         String uri = String.format("/container/write/%s", container.getWriteId());
         ResponseEntity<TestContainerWriteT> testContainer = restTemplate.getForEntity(baseUri() + uri, TestContainerWriteT.class);
+        assertThat(testContainer.getBody()).isNotNull();
         assertThat(testContainer.getBody().writeId).isEqualTo(container.getWriteId());
         assertThat(testContainer.getBody().testCases)
                 .extracting(testCase -> testCase.title, testCase -> testCase.icdCode)
                 .containsExactly(Tuple.tuple("Test", "ICD1234"));
+    }
+
+    @Test
+    void shouldReturnBadRequest_titleIsNotUnique() {
+        CreateTestContainerRequest createTestContainerRequest = new CreateTestContainerRequest();
+        TestToCreate testToCreate = TestToCreate.builder().title("Test").icdCode("ICD1234").build();
+        createTestContainerRequest.testRequests = List.of(testToCreate, testToCreate);
+        RequestEntity<CreateTestContainerRequest> request = RequestEntity.post(URI.create(baseUri() + "/container"))
+                .header("Authorization", "Basic dGVzdDp0ZXN0") // user=test, password=test
+                .body(createTestContainerRequest);
+        assertThatThrownBy(() -> restTemplate.exchange(request, TestContainer.class))
+                .isInstanceOf(RestClientException.class)
+                .hasMessageContaining("Test case names need to be unique among all test cases.");
+    }
+
+    @Test
+    void shouldUpdateTest_byTitle() {
+        TestContainer container = createSampleContainer().getBody();
+        TestCase testCase = container.getTestCases().iterator().next();
+        String url = String.format("%s/container/batch-update", baseUri());
+        UpdateTestRequest.SingleTest singleTest = new UpdateTestRequest.SingleTest();
+        singleTest.testResult = TestResultT.POSITIVE;
+        singleTest.title = testCase.getTitle();
+        UpdateTestRequest request = new UpdateTestRequest();
+        request.tests = List.of(singleTest);
+        request.writeId = container.getWriteId();
+        ResponseEntity<TestContainerWriteT> response = restTemplate.postForEntity( url, request, TestContainerWriteT.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().testCases)
+                .extracting(testCaseWriteT -> testCaseWriteT.currentStatus, testCaseWriteT -> testCaseWriteT.title)
+                .containsExactly(Tuple.tuple(TestStageStatus.CONFIRM_POSITIVE, singleTest.title));
     }
 }

@@ -5,9 +5,9 @@ import de.testbefund.testbefundapi.client.data.ClientRepository;
 import de.testbefund.testbefundapi.test.data.*;
 import de.testbefund.testbefundapi.test.dto.TestResultT;
 import de.testbefund.testbefundapi.test.dto.TestToCreate;
+import de.testbefund.testbefundapi.test.dto.UpdateTestRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
@@ -155,5 +155,18 @@ class TestServiceTestCase {
         Mockito.when(idProvider.get()).thenReturn("ABCDE");
         TestContainer testContainer = testService.createTestContainer(of(builder().title("TitleA").build()));
         assertThat(testContainer.getWriteId()).isEqualTo("ABCDE");
+    }
+
+    @Test
+    void shouldBatchUpdate() {
+        // Title is SARS-CoV2
+        TestCase testCase = withPersistentTestCase("ABCDE");
+        UpdateTestRequest request = new UpdateTestRequest();
+        request.writeId = "ABCDE";
+        request.tests = List.of(UpdateTestRequest.SingleTest.builder().title(testCase.getTitle()).testResult(TestResultT.NEGATIVE).build());
+        TestContainer result = testService.updateTestContainer(request);
+        assertThat(result.getTestCases())
+                .extracting(TestCase::getCurrentStatus)
+                .containsExactly(TestStageStatus.CONFIRM_NEGATIVE);
     }
 }

@@ -2,10 +2,15 @@ package de.testbefund.testbefundapi.test.service;
 
 import de.testbefund.testbefundapi.client.data.Client;
 import de.testbefund.testbefundapi.client.data.ClientRepository;
-import de.testbefund.testbefundapi.test.data.*;
+import de.testbefund.testbefundapi.test.data.TestCase;
+import de.testbefund.testbefundapi.test.data.TestContainer;
+import de.testbefund.testbefundapi.test.data.TestContainerRepository;
+import de.testbefund.testbefundapi.test.data.TestStageStatus;
 import de.testbefund.testbefundapi.test.dto.TestResultT;
 import de.testbefund.testbefundapi.test.dto.TestToCreate;
+import de.testbefund.testbefundapi.test.dto.UpdateTestRequest;
 import de.testbefund.testbefundapi.test.error.NoTestCaseFoundException;
+import de.testbefund.testbefundapi.test.error.TestNameNotUniqueException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -44,6 +49,7 @@ public class TestService {
 
     @Transactional
     public TestContainer createTestContainer(Collection<TestToCreate> testTitles) {
+        validate(testTitles);
         TestContainer container = TestContainer.builder()
                 .testCases(testCasesOf(testTitles))
                 .date(LocalDateTime.now())
@@ -65,6 +71,25 @@ public class TestService {
     public void updateTestByWriteId(String writeId, String testId, TestResultT result) {
         testContainerRepository.findByWriteId(writeId)
                 .ifPresentOrElse(container -> updateTestContainer(container, testId, result), this::throwNoTestCaseFound);
+    }
+
+    @Transactional
+    public TestContainer updateTestContainer(UpdateTestRequest testRequest) {
+        return testContainerRepository.findByWriteId(testRequest.writeId)
+                .map(container -> batchUpdateContainer(container, testRequest))
+                .orElseThrow(NoTestCaseFoundException::new);
+    }
+
+    private TestContainer batchUpdateContainer(TestContainer testContainer, UpdateTestRequest request) {
+        request.tests.forEach(singleTest -> updateSingleTest(singleTest, testContainer));
+        return testContainer;
+    }
+
+    private void updateSingleTest(UpdateTestRequest.SingleTest singleTest, TestContainer testContainer) {
+        TestCase caseToUpdate = testContainer.getTestCases().stream().filter(testCase -> testCase.getTitle().toLowerCase().equals(singleTest.title.toLowerCase()))
+                .findAny()
+                .orElseThrow(() -> new RuntimeException("Updated failed; No test found for " + singleTest.title));
+        updateTestCase(singleTest.testResult, caseToUpdate);
     }
 
     private void updateTestContainer(TestContainer testContainer, String testId, TestResultT result) {
@@ -112,5 +137,15 @@ public class TestService {
                 .gracePeriodMinutes(gracePeriod)
                 .currentStatus(TestStageStatus.ISSUED)
                 .build();
+    }
+
+    private void validate(Collection<TestToCreate> tests) {
+        long uniqueNameCount = tests.stream()
+                .map(testToCreate -> testToCreate.title)
+                .distinct()
+                .count();
+        if (tests.size() != uniqueNameCount) {
+            throw new TestNameNotUniqueException();
+        }
     }
 }
