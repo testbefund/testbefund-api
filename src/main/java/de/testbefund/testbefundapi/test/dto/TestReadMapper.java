@@ -2,6 +2,7 @@ package de.testbefund.testbefundapi.test.dto;
 
 import de.testbefund.testbefundapi.test.data.TestCase;
 import de.testbefund.testbefundapi.test.data.TestContainer;
+import de.testbefund.testbefundapi.test.data.TestStageStatus;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -23,12 +24,16 @@ public interface TestReadMapper {
     TestContainerReadT mapOne(TestContainer testContainer);
 
     @Mapping(target = "infected", qualifiedByName = "caseToResultMapper", source = "testCase")
-    @Mapping(target = "status", qualifiedByName = "caseToStatusMapper",  source = "testCase")
+    @Mapping(target = "status", qualifiedByName = "caseToStatusMapper", source = "testCase")
     @Mapping(source = "icdCode", target = "icd_code")
     TestCaseReadT mapOne(TestCase testCase);
 
     @Named("caseToStatusMapper")
     default TestStatusT mapStatus(TestCase testCase) {
+        boolean hideResult = hideResult(testCase);
+        if (hideResult && testCase.getCurrentStatus().isHideable()) {
+            return TestStatusT.REVIEW_PENDING;
+        }
         switch (testCase.getCurrentStatus()) {
             case ISSUED:
                 return TestStatusT.IN_PROGRESS;
@@ -42,10 +47,7 @@ public interface TestReadMapper {
 
     @Named("caseToResultMapper")
     default TestResultT mapResult(TestCase testCase) {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime lastChangeDate = testCase.getLastChangeDate();
-        long minutesBetween = ChronoUnit.MINUTES.between(lastChangeDate, now);
-        boolean hideResult = minutesBetween <= testCase.getGracePeriodMinutes();
+        boolean hideResult = hideResult(testCase);
         if (hideResult) {
             return TestResultT.UNKNOWN;
         }
@@ -58,5 +60,12 @@ public interface TestReadMapper {
                 return TestResultT.NEGATIVE;
         }
         return TestResultT.UNKNOWN;
+    }
+
+    default boolean hideResult(TestCase testCase) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime lastChangeDate = testCase.getLastChangeDate();
+        long minutesBetween = ChronoUnit.MINUTES.between(lastChangeDate, now);
+        return minutesBetween <= testCase.getGracePeriodMinutes();
     }
 }
