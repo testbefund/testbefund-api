@@ -67,16 +67,6 @@ class TestServiceTestCase {
         assertThat(testCase.getCurrentStatus()).isEqualTo(TestStageStatus.ISSUED);
     }
 
-    @Test
-    void shouldCreateTests_withClient() {
-        Client client = Client.builder().id("ID1234").name("Client").build();
-        Mockito.when(clientRepository.findById("ID1234")).thenReturn(Optional.of(client));
-        TestToCreate testToCreate = builder().title("Title").clientId("ID1234").build();
-        TestContainer testContainer = testService.createTestContainer(of(testToCreate));
-        assertThat(testContainer.getTestCases())
-                .extracting(TestCase::getClient)
-                .containsExactly(client);
-    }
 
     @Test
     void shouldCreateTest_withICDCode() {
@@ -107,7 +97,6 @@ class TestServiceTestCase {
         TestCase testCase = TestCase.builder()
                 .title("SARS-CoV2")
                 .id("1234")
-                .client(new Client())
                 .icdCode("1234")
                 .lastChangeDate(LocalDateTime.now())
                 .currentStatus(TestStageStatus.ISSUED)

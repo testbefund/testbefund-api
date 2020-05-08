@@ -9,6 +9,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class TestToCreate {
     public String title;
-    public String clientId;
     public String icdCode;
 }

@@ -126,12 +126,8 @@ public class TestService {
     }
 
     private TestCase toTestCaseForTitle(TestToCreate testToCreate) {
-        Client client = Optional.ofNullable(testToCreate.clientId)
-                .flatMap(clientRepository::findById)
-                .orElse(null);
         return TestCase.builder()
                 .title(testToCreate.title)
-                .client(client)
                 .icdCode(testToCreate.icdCode)
                 .lastChangeDate(currentDateSupplier.get())
                 .gracePeriodMinutes(gracePeriod)

@@ -5,5 +5,4 @@ public class TestCaseReadT {
     public String icd_code;
     public TestResultT infected;
     public TestStatusT status;
-    public TestCaseClientT client;
 }

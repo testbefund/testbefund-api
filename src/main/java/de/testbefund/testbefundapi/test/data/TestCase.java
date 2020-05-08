@@ -41,10 +41,6 @@ public class TestCase {
     @Column(name = "icd_code")
     private String icdCode;
 
-    @JoinColumn(name = "client_id")
-    @ManyToOne
-    private Client client;
-
     @ManyToOne
     @JsonIgnore // Backreference, don't serialize
     private TestContainer testContainer;

@@ -115,23 +115,6 @@ class TestControllerTestV1 {
         return clientRepository.saveAndFlush(client);
     }
 
-    @Test
-    void shouldCreateTestCase_withClient() {
-        Client client = createSampleClient();
-        CreateTestContainerRequest createTestContainerRequest = new CreateTestContainerRequest();
-        createTestContainerRequest.testRequests = List.of(TestToCreate.builder().title("Title").clientId(client.getId()).build());
-
-        RequestEntity<CreateTestContainerRequest> request = RequestEntity.post(URI.create(baseUri() + "/container"))
-                .header("Authorization", "Basic dGVzdDp0ZXN0") // user=test, password=test
-                .body(createTestContainerRequest);
-        ResponseEntity<TestContainer> response = restTemplate.exchange(request, TestContainer.class);
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getTestCases())
-                .extracting(testCase -> testCase.getClient().getId())
-                .containsExactly(client.getId());
-    }
-
     private TestContainer exchangeForTestContainer(CreateTestContainerRequest createTestContainerRequest) {
         RequestEntity<CreateTestContainerRequest> request = RequestEntity.post(URI.create(baseUri() + "/container"))
                 .header("Authorization", "Basic dGVzdDp0ZXN0") // user=test, password=test
@@ -139,27 +122,6 @@ class TestControllerTestV1 {
         ResponseEntity<TestContainer> response =  restTemplate.exchange(request, TestContainer.class);
         assertThat(response.getBody()).isNotNull();
         return response.getBody();
-    }
-
-    @Test
-    void shouldExposeClient_viaApi() {
-        Client client = createSampleClient();
-        CreateTestContainerRequest createTestContainerRequest = new CreateTestContainerRequest();
-        createTestContainerRequest.testRequests = List.of(TestToCreate.builder().title("Title").clientId(client.getId()).build());
-
-        TestContainer container = exchangeForTestContainer(createTestContainerRequest);
-        TestContainerReadT readContainer = getContainerByReadId(container.getReadId());
-
-        assertThat(readContainer).isNotNull();
-        assertThat(readContainer.tests).hasSize(1);
-        TestCaseReadT test = readContainer.tests.iterator().next();
-        assertThat(test.client).isNotNull();
-        assertThat(test.client.address).isEqualTo(client.getAddress());
-        assertThat(test.client.email).isEqualTo(client.getEmail());
-        assertThat(test.client.homepage).isEqualTo(client.getHomepage());
-        assertThat(test.client.name).isEqualTo(client.getName());
-        assertThat(test.client.openingHours).isEqualTo(client.getOpeningHours());
-        assertThat(test.client.telefon).isEqualTo(client.getTelefon());
     }
 
     @Test
