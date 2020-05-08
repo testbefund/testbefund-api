@@ -48,7 +48,7 @@ public class TestService {
     }
 
     @Transactional
-    public TestContainer createTestContainer(Collection<TestToCreate> testTitles) {
+    public TestContainer createTestContainer(Collection<TestToCreate> testTitles, String clientId) {
         validate(testTitles);
         TestContainer container = TestContainer.builder()
                 .testCases(testCasesOf(testTitles))
@@ -56,6 +56,9 @@ public class TestService {
                 .readId(idProvider.get())
                 .writeId(idProvider.get())
                 .build();
+        Optional.ofNullable(clientId)
+                .flatMap(clientRepository::findById)
+                .ifPresent(container::setClient);
         return testContainerRepository.save(container);
     }
 

@@ -27,7 +27,7 @@ class TestServiceITest {
     @Test
     @Transactional
     public void shouldCreatePersistentTestCase() {
-        TestContainer savedContainer = testService.createTestContainer(List.of(TestToCreate.builder().title("Test").build()));
+        TestContainer savedContainer = testService.createTestContainer(List.of(TestToCreate.builder().title("Test").build()), null);
         assertThat(savedContainer.getId()).isNotNull();
         TestContainer persistentContainer = testContainerRepository.getOne(savedContainer.getId());
         assertThat(persistentContainer).isEqualTo(savedContainer);
@@ -36,7 +36,7 @@ class TestServiceITest {
     @Test
     @Transactional
     public void shouldCreateTestCase_andReadItByReadId() {
-        TestContainer savedContainer = testService.createTestContainer(List.of(TestToCreate.builder().title("Test").build()));
+        TestContainer savedContainer = testService.createTestContainer(List.of(TestToCreate.builder().title("Test").build()), null);
         Optional<TestContainer> maybePersistentContainer = testService.getContainerByReadId(savedContainer.getReadId());
         assertThat(maybePersistentContainer).isPresent();
         assertThat(maybePersistentContainer.get()).isEqualTo(savedContainer);
@@ -45,7 +45,7 @@ class TestServiceITest {
     @Test
     @Transactional
     public void shouldCreateTestCase_andWriteItByWriteId() {
-        TestContainer savedContainer = testService.createTestContainer(List.of(TestToCreate.builder().title("Test").build()));
+        TestContainer savedContainer = testService.createTestContainer(List.of(TestToCreate.builder().title("Test").build()), null);
         TestCase testCase = savedContainer.getTestCases().iterator().next();
         testService.updateTestByWriteId(savedContainer.getWriteId(), testCase.getId(), TestResultT.POSITIVE);
         Optional<TestContainer> persistentContainer = testService.getContainerByReadId(savedContainer.getReadId());

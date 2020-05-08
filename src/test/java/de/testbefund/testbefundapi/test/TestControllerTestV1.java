@@ -168,4 +168,24 @@ class TestControllerTestV1 {
                 .extracting(testCaseWriteT -> testCaseWriteT.currentStatus, testCaseWriteT -> testCaseWriteT.title)
                 .containsExactly(Tuple.tuple(TestStageStatus.CONFIRM_POSITIVE, singleTest.title));
     }
+
+    @Test
+    void shouldCreateWithClient() {
+        Client client = clientRepository.saveAndFlush(Client.builder().name("Testclient").build());
+        CreateTestContainerRequest createTestContainerRequest = new CreateTestContainerRequest();
+        TestToCreate testToCreate = TestToCreate.builder().title("Test").icdCode("ICD1234").build();
+        createTestContainerRequest.testRequests = List.of(testToCreate);
+        createTestContainerRequest.clientId = client.getId();
+
+        // Verify that the container was created with the client
+        TestContainer resultingContainer = exchangeForTestContainer(createTestContainerRequest);
+        assertThat(resultingContainer.getClient().getName()).isEqualTo(client.getName());
+        assertThat(resultingContainer.getClient().getId()).isEqualTo(client.getId());
+
+        // Verify that we can actually read the data (TestContainerReadT contains the client)
+        ResponseEntity<TestContainerReadT> readContainer = restTemplate.getForEntity(baseUri() + "/container/" + resultingContainer.getReadId(), TestContainerReadT.class);
+        assertThat(readContainer.getBody()).isNotNull();
+        assertThat(readContainer.getBody().client).isNotNull();
+        assertThat(readContainer.getBody().client.name).isEqualTo(client.getName());
+    }
 }

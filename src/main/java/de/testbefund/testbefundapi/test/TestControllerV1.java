@@ -33,7 +33,7 @@ public class TestControllerV1 {
 
     @PostMapping(value = "/container", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<TestContainer> createTestContainer(@RequestBody CreateTestContainerRequest request) {
-        TestContainer testContainer = testService.createTestContainer(request.testRequests);
+        TestContainer testContainer = testService.createTestContainer(request.testRequests, request.clientId);
         return ResponseEntity.ok(testContainer);
     }
 

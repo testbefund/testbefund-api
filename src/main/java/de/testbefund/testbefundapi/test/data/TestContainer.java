@@ -1,5 +1,6 @@
 package de.testbefund.testbefundapi.test.data;
 
+import de.testbefund.testbefundapi.client.data.Client;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -30,6 +31,9 @@ public class TestContainer {
     private String writeId;
     @Column(name = "date")
     private LocalDateTime date;
+    @JoinColumn(name = "client_id")
+    @ManyToOne()
+    private Client client;
     @OneToMany(cascade = ALL, orphanRemoval = true)
     @JoinColumn(name = "test_container_id")
     private Collection<TestCase> testCases;
