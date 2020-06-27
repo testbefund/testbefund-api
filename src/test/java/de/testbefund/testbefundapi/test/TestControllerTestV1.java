@@ -2,6 +2,7 @@ package de.testbefund.testbefundapi.test;
 
 import de.testbefund.testbefundapi.client.data.Client;
 import de.testbefund.testbefundapi.client.data.ClientRepository;
+import de.testbefund.testbefundapi.config.TestSecurityConfig;
 import de.testbefund.testbefundapi.test.data.TestCase;
 import de.testbefund.testbefundapi.test.data.TestContainer;
 import de.testbefund.testbefundapi.test.data.TestStageStatus;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +25,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
 
+@Import(TestSecurityConfig.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class TestControllerTestV1 {
 
@@ -135,19 +138,6 @@ class TestControllerTestV1 {
         assertThat(testContainer.getBody().testCases)
                 .extracting(testCase -> testCase.title, testCase -> testCase.icdCode)
                 .containsExactly(Tuple.tuple("Test", "ICD1234"));
-    }
-
-    @Test
-    void shouldReturnBadRequest_titleIsNotUnique() {
-        CreateTestContainerRequest createTestContainerRequest = new CreateTestContainerRequest();
-        TestToCreate testToCreate = TestToCreate.builder().title("Test").icdCode("ICD1234").build();
-        createTestContainerRequest.testRequests = List.of(testToCreate, testToCreate);
-        RequestEntity<CreateTestContainerRequest> request = RequestEntity.post(URI.create(baseUri() + "/container"))
-                .header("Authorization", "Basic dGVzdDp0ZXN0") // user=test, password=test
-                .body(createTestContainerRequest);
-        assertThatThrownBy(() -> restTemplate.exchange(request, TestContainer.class))
-                .isInstanceOf(RestClientException.class)
-                .hasMessageContaining("Test case names need to be unique among all test cases.");
     }
 
     @Test

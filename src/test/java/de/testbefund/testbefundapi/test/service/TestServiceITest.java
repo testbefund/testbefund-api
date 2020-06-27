@@ -1,5 +1,6 @@
 package de.testbefund.testbefundapi.test.service;
 
+import de.testbefund.testbefundapi.config.TestSecurityConfig;
 import de.testbefund.testbefundapi.test.data.*;
 import de.testbefund.testbefundapi.test.dto.TestResultT;
 import de.testbefund.testbefundapi.test.dto.TestToCreate;
@@ -7,6 +8,7 @@ import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 
 import javax.transaction.Transactional;
 import java.util.List;
@@ -14,6 +16,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Import(TestSecurityConfig.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 class TestServiceITest {
 
