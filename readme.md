@@ -6,6 +6,18 @@ To build the application, follow these steps:
 
 This will build the jar, package it into a docker container and let's compose run it.
 
+## Authentication
+Testbefund uses AzureAD to validate an OIDC token. To know against which AzureAD tenant testbefund has
+to validate incoming tokens, the environment variable ``TENANT_ID`` has to be set.
+
+If you want to test it out yourself, you will need to register an application with AzureAD. See https://docs.microsoft.com/en-us/azure/active-directory/manage-apps/developer-guidance-for-integrating-applications
+for more details.
+
+If you register an application in the default microsoft tenant, the tenant will be ``common``
+
+While registering, make sure to use the ``Single Page Application`` configuration, otherwise the
+authorization code flow won't work.
+
 ### Docker Envs
 The following environment variables are available and have to be set.
 * ``DB_URL`` is the JDBC connection string

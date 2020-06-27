@@ -11,10 +11,14 @@ spring:
     username: ${DB_USER:postgres}
     password: ${DB_PASS:password}
     driver-class-name: ${DB_DRIVER_CLASS_NAME:org.postgresql.Driver}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://sts.windows.net/${TENANT_ID}/
+          jwk-set-uri: https://sts.windows.net/${TENANT_ID}/discovery/keys
 testbefund:
-  user: ${APP_USER:user}
-  pass: ${APP_PASS:pass}
   grace-period-in-minutes: 20
-  allowed-origins: "http://localhost:3000,http://localhost:8080"
-  allowed-headers: "authorization,x-requested-with"
+  allowed-origins: "http://localhost:3000,http://localhost:8080, http://localhost:4200  "
+  allowed-headers: "authorization,x-requested-with,content-type"
   test-id-strength: 30
