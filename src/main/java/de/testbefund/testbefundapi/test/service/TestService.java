@@ -1,14 +1,14 @@
 package de.testbefund.testbefundapi.test.service;
 
-import de.testbefund.testbefundapi.client.data.Client;
 import de.testbefund.testbefundapi.client.data.ClientRepository;
+import de.testbefund.testbefundapi.generated.api.model.TestbefundFindingResult;
+import de.testbefund.testbefundapi.generated.api.model.TestbefundTestDefinition;
+import de.testbefund.testbefundapi.generated.api.model.TestbefundUpdateFindingRequest;
+import de.testbefund.testbefundapi.generated.api.model.TestbefundUpdateSingleFinding;
 import de.testbefund.testbefundapi.test.data.TestCase;
 import de.testbefund.testbefundapi.test.data.TestContainer;
 import de.testbefund.testbefundapi.test.data.TestContainerRepository;
 import de.testbefund.testbefundapi.test.data.TestStageStatus;
-import de.testbefund.testbefundapi.test.dto.TestResultT;
-import de.testbefund.testbefundapi.test.dto.TestToCreate;
-import de.testbefund.testbefundapi.test.dto.UpdateTestRequest;
 import de.testbefund.testbefundapi.test.error.NoTestCaseFoundException;
 import de.testbefund.testbefundapi.test.error.TestNameNotUniqueException;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -48,7 +48,7 @@ public class TestService {
     }
 
     @Transactional
-    public TestContainer createTestContainer(Collection<TestToCreate> testTitles, String clientId) {
+    public TestContainer createTestContainer(Collection<TestbefundTestDefinition> testTitles, String clientId) {
         validate(testTitles);
         TestContainer container = TestContainer.builder()
                 .testCases(testCasesOf(testTitles))
@@ -71,31 +71,31 @@ public class TestService {
     }
 
     @Transactional
-    public void updateTestByWriteId(String writeId, String testId, TestResultT result) {
+    public void updateTestByWriteId(String writeId, String testId, TestbefundFindingResult result) {
         testContainerRepository.findByWriteId(writeId)
                 .ifPresentOrElse(container -> updateTestContainer(container, testId, result), this::throwNoTestCaseFound);
     }
 
     @Transactional
-    public TestContainer updateTestContainer(UpdateTestRequest testRequest) {
-        return testContainerRepository.findByWriteId(testRequest.writeId)
+    public TestContainer updateTestContainer(TestbefundUpdateFindingRequest testRequest) {
+        return testContainerRepository.findByWriteId(testRequest.getWriteId())
                 .map(container -> batchUpdateContainer(container, testRequest))
                 .orElseThrow(NoTestCaseFoundException::new);
     }
 
-    private TestContainer batchUpdateContainer(TestContainer testContainer, UpdateTestRequest request) {
-        request.tests.forEach(singleTest -> updateSingleTest(singleTest, testContainer));
+    private TestContainer batchUpdateContainer(TestContainer testContainer, TestbefundUpdateFindingRequest request) {
+        request.getFindings().forEach(singleFinding -> updateSingleTest(singleFinding, testContainer));
         return testContainer;
     }
 
-    private void updateSingleTest(UpdateTestRequest.SingleTest singleTest, TestContainer testContainer) {
-        TestCase caseToUpdate = testContainer.getTestCases().stream().filter(testCase -> testCase.getTitle().toLowerCase().equals(singleTest.title.toLowerCase()))
+    private void updateSingleTest(TestbefundUpdateSingleFinding singleTest, TestContainer testContainer) {
+        TestCase caseToUpdate = testContainer.getTestCases().stream().filter(testCase -> testCase.getTitle().toLowerCase().equals(singleTest.getTitle().toLowerCase()))
                 .findAny()
-                .orElseThrow(() -> new RuntimeException("Updated failed; No test found for " + singleTest.title));
-        updateTestCase(singleTest.testResult, caseToUpdate);
+                .orElseThrow(() -> new RuntimeException("Updated failed; No test found for " + singleTest.getTitle()));
+        updateTestCase(singleTest.getTestResult(), caseToUpdate);
     }
 
-    private void updateTestContainer(TestContainer testContainer, String testId, TestResultT result) {
+    private void updateTestContainer(TestContainer testContainer, String testId, TestbefundFindingResult result) {
         testContainer.getTestCases()
                 .stream()
                 .filter(testCase -> testCase.getId().equals(testId))
@@ -103,7 +103,7 @@ public class TestService {
                 .ifPresentOrElse(testCase -> updateTestCase(result, testCase), this::throwNoTestCaseFound);
     }
 
-    private void updateTestCase(TestResultT testResult, TestCase testCase) {
+    private void updateTestCase(TestbefundFindingResult testResult, TestCase testCase) {
         switch (testResult) {
             case UNKNOWN:
                 testCase.setCurrentStatus(TestStageStatus.ISSUED);
@@ -122,25 +122,25 @@ public class TestService {
         throw new NoTestCaseFoundException();
     }
 
-    private List<TestCase> testCasesOf(Collection<TestToCreate> testsToCreate) {
+    private List<TestCase> testCasesOf(Collection<TestbefundTestDefinition> testsToCreate) {
         return testsToCreate.stream()
                 .map(this::toTestCaseForTitle)
                 .collect(Collectors.toList());
     }
 
-    private TestCase toTestCaseForTitle(TestToCreate testToCreate) {
+    private TestCase toTestCaseForTitle(TestbefundTestDefinition testToCreate) {
         return TestCase.builder()
-                .title(testToCreate.title)
-                .icdCode(testToCreate.icdCode)
+                .title(testToCreate.getTitle())
+                .icdCode(testToCreate.getIcdCode())
                 .lastChangeDate(currentDateSupplier.get())
                 .gracePeriodMinutes(gracePeriod)
                 .currentStatus(TestStageStatus.ISSUED)
                 .build();
     }
 
-    private void validate(Collection<TestToCreate> tests) {
+    private void validate(Collection<TestbefundTestDefinition> tests) {
         long uniqueNameCount = tests.stream()
-                .map(testToCreate -> testToCreate.title)
+                .map(TestbefundTestDefinition::getTitle)
                 .distinct()
                 .count();
         if (tests.size() != uniqueNameCount) {

@@ -2,11 +2,50 @@ plugins {
     id 'org.springframework.boot' version '2.3.1.RELEASE'
     id 'io.spring.dependency-management' version '1.0.9.RELEASE'
     id 'java'
+    id "org.openapi.generator" version "4.3.1"
 }
 
 group = 'de.testbefund'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '11'
+
+sourceSets {
+    // for openapi generated stuff
+    main {
+        java {
+            srcDir 'build/generated/src/main/java'
+        }
+    }
+}
+
+openApiValidate {
+    inputSpec = "$rootDir/testbefund-api.v1.yaml".toString()
+}
+
+openApiGenerate {
+    generatorName = "spring"
+    library = "spring-boot"
+    inputSpec = "$rootDir/testbefund-api.v1.yaml".toString()
+    outputDir = "${rootDir}/build/generated".toString()
+    verbose = true
+    configOptions = [
+            useOptional          : "true",
+            swaggerDocketConfig  : "false",
+            performBeanValidation: "false",
+            useBeanValidation    : "false",
+            useTags              : "true",
+            singleContentTypes   : "true",
+            serializableModel    : "true",
+            interfaceOnly        : "true",
+            java8                : "false",
+            dateLibrary          : "java8",
+            basePackage          : "de.testbefund.testbefundapi.generated.api",
+            configPackage        : "de.testbefund.testbefundapi.generated.api",
+            apiPackage           : "de.testbefund.testbefundapi.generated.api",
+            modelPackage         : "de.testbefund.testbefundapi.generated.api.model",
+            invokerPackage       : "de.testbefund.testbefundapi.generated.api",
+    ]
+}
 
 configurations {
     compileOnly {
@@ -34,9 +73,12 @@ dependencies {
     implementation "org.mapstruct:mapstruct:1.3.1.Final"
     annotationProcessor "org.mapstruct:mapstruct-processor:1.3.1.Final"
     implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'io.springfox:springfox-swagger2:2.9.2'
-    implementation 'io.springfox:springfox-swagger-ui:2.9.2'
     implementation 'com.aventrix.jnanoid:jnanoid:2.0.0'
+
+    // Necessary for OpenAPI generated code
+    implementation 'org.openapitools:jackson-databind-nullable:0.2.1'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    implementation 'io.springfox:springfox-swagger2:2.9.2'
 }
 
 test {

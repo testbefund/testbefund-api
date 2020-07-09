@@ -1,0 +1,277 @@
+openapi: 3.0.0
+info:
+  title: testbefund-api
+  version: '1.0'
+  contact:
+    name: Testbefund
+    url: 'https://www.testbefund.de'
+    email: anfragen@testbefund.de
+  description: API specification for testbefund
+servers:
+  - url: 'http://localhost:3000'
+tags:
+  - name: test
+    description: Test API
+paths:
+  /v1/test/auth:
+    get:
+      summary: Your GET endpoint
+      tags:
+        - test
+      responses:
+        '204':
+          description: User has sufficient permissions to access protected testbefund APIs
+        '401':
+          description: User lacks sufficient permissions to access protected testbefund APIs
+      operationId: isAuthenticated
+      description: Validates that the user has sufficient permission to access the protected resources from this API.
+    parameters: []
+  /v1/test/container:
+    post:
+      summary: ''
+      operationId: createTestContainer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestbefundTestContainer'
+      description: Testbefund protected resource. Allows creation of entire test containers.
+      tags:
+        - test
+      security:
+        - OIDC: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestbefundTestContainerDefinition'
+        description: |-
+          The container definition for the container that is going to be created.
+          The full container is returned upon creation.
+  '/v1/finding/{read-id}':
+    parameters:
+      - schema:
+          type: string
+        name: read-id
+        in: path
+        required: true
+        description: ''
+    get:
+      summary: Your GET endpoint
+      tags:
+        - test
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestbefundFindingContainer'
+      operationId: getFindingContainer
+      description: Returns a FindingContainer for a read ID. Testbefund public API.
+  '/v1/test/{write-id}':
+    parameters:
+      - schema:
+          type: string
+        name: write-id
+        in: path
+        required: true
+    get:
+      summary: Your GET endpoint
+      tags:
+        - test
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestbefundTestContainer'
+      operationId: getTestContainer
+      description: 'Returns a writeable test container, containing both read and write information.'
+  '/v1/test/container/{write-id}/testcase/{test-id}/{test-result}':
+    parameters:
+      - schema:
+          type: string
+        name: write-id
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: test-id
+        in: path
+        required: true
+      - schema:
+          $ref: '#/components/schemas/TestbefundFindingResult'
+        name: test-result
+        in: path
+        required: true
+    post:
+      summary: Update Test
+      tags:
+        - test
+      responses:
+        '204':
+          description: No Content
+      operationId: updateTest
+      description: Updates the result of a single test container
+  /v1/test/container/batch-update:
+    post:
+      summary: Container Batch Update
+      operationId: updateContainerBatch
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestbefundTestContainer'
+      tags:
+        - test
+      description: Batch updates a few containers. Protected testbefund API.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestbefundUpdateFindingRequest'
+components:
+  schemas:
+    TestbefundIssuingOrganization:
+      title: TestbefundIssuingOrganization
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        address:
+          type: string
+        telefon:
+          type: string
+        email:
+          type: string
+        openingHours:
+          type: string
+        homepage:
+          type: string
+      description: 'The issuing organization is responsible for the test and the test results. A user may use this as contact in case of question or if they need information about their test. Testbefund is the platform, the issuing organization performs the tests.'
+    TestbefundTestDefinition:
+      title: TestbefundTestDefinition
+      type: object
+      description: A single test definition
+      properties:
+        title:
+          type: string
+        icdCode:
+          type: string
+    TestbefundTestContainerDefinition:
+      title: TestbefundTestContainerDefinition
+      type: object
+      description: 'A single container definition, which is used to create n test containers'
+      properties:
+        testDefinitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestbefundTestDefinition'
+        issuingOrganization:
+          type: string
+    TestbefundFindingContainer:
+      title: TestbefundFindingContainer
+      type: object
+      description: Read-Only data for a test-container. Contains aggregated meta-data to inform the user of their status.
+      properties:
+        readId:
+          type: string
+        date:
+          type: string
+          format: date-time
+        issuer:
+          $ref: '#/components/schemas/TestbefundIssuingOrganization'
+        findings:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestbefundFinding'
+    TestbefundFinding:
+      title: TestbefundFinding
+      type: object
+      properties:
+        title:
+          type: string
+        icdCode:
+          type: string
+        status:
+          $ref: '#/components/schemas/TestbefundFindingStatus'
+        result:
+          $ref: '#/components/schemas/TestbefundFindingResult'
+      description: |-
+        A single finding (A test that has a result). The result of the finding will be known once the status is DONE.
+
+        Finding result will be UNKNOWN as long as the finding status is REVIEW_PENDING or IN_PROGRESS
+    TestbefundFindingResult:
+      type: string
+      title: TestbefundFindingResult
+      enum:
+        - UNKNOWN
+        - POSITIVE
+        - NEGATIVE
+      description: 'Result of a finding, can be POSITIVE or NEGATIVE. If result is not known yet, it will be UNKNOWN'
+    TestbefundFindingStatus:
+      title: TestbefundFindingStatus
+      type: string
+      enum:
+        - IN_PROGRESS
+        - REVIEW_PENDING
+        - DONE
+    TestbefundTestContainer:
+      title: TestbefundTestContainer
+      type: object
+      description: Writeable test container
+      properties:
+        writeId:
+          type: string
+        readId:
+          type: string
+        testCases:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestbefundTest'
+        issuer:
+          $ref: '#/components/schemas/TestbefundIssuingOrganization'
+    TestbefundTest:
+      title: TestbefundTest
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        currentStatus:
+          $ref: '#/components/schemas/TestbefundFindingResult'
+        icdCode:
+          type: string
+    TestbefundUpdateFindingRequest:
+      title: TestbefundUpdateFindingRequest
+      type: object
+      description: For batch updates
+      properties:
+        writeId:
+          type: string
+        findings:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestbefundUpdateSingleFinding'
+    TestbefundUpdateSingleFinding:
+      title: TestbefundUpdateSingleFinding
+      type: object
+      description: For batch updates
+      properties:
+        title:
+          type: string
+        testResult:
+          $ref: '#/components/schemas/TestbefundFindingResult'
+  securitySchemes:
+    OIDC:
+      type: openIdConnect
+      openIdConnectUrl: 'https://sts.windows.net/9cab6333-480d-4255-9147-29bfca59f878/'

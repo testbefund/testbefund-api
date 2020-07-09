@@ -1,9 +1,12 @@
 package de.testbefund.testbefundapi.test.service;
 
 import de.testbefund.testbefundapi.config.TestSecurityConfig;
-import de.testbefund.testbefundapi.test.data.*;
-import de.testbefund.testbefundapi.test.dto.TestResultT;
-import de.testbefund.testbefundapi.test.dto.TestToCreate;
+import de.testbefund.testbefundapi.generated.api.model.TestbefundFindingResult;
+import de.testbefund.testbefundapi.generated.api.model.TestbefundTestDefinition;
+import de.testbefund.testbefundapi.test.data.TestCase;
+import de.testbefund.testbefundapi.test.data.TestContainer;
+import de.testbefund.testbefundapi.test.data.TestContainerRepository;
+import de.testbefund.testbefundapi.test.data.TestStageStatus;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +33,7 @@ class TestServiceITest {
     @Test
     @Transactional
     public void shouldCreatePersistentTestCase() {
-        TestContainer savedContainer = testService.createTestContainer(List.of(TestToCreate.builder().title("Test").build()), null);
+        TestContainer savedContainer = testService.createTestContainer(List.of(new TestbefundTestDefinition().title("Test")), null);
         assertThat(savedContainer.getId()).isNotNull();
         TestContainer persistentContainer = testContainerRepository.getOne(savedContainer.getId());
         assertThat(persistentContainer).isEqualTo(savedContainer);
@@ -39,7 +42,7 @@ class TestServiceITest {
     @Test
     @Transactional
     public void shouldCreateTestCase_andReadItByReadId() {
-        TestContainer savedContainer = testService.createTestContainer(List.of(TestToCreate.builder().title("Test").build()), null);
+        TestContainer savedContainer = testService.createTestContainer(List.of(new TestbefundTestDefinition().title("Test")), null);
         Optional<TestContainer> maybePersistentContainer = testService.getContainerByReadId(savedContainer.getReadId());
         assertThat(maybePersistentContainer).isPresent();
         assertThat(maybePersistentContainer.get()).isEqualTo(savedContainer);
@@ -48,9 +51,9 @@ class TestServiceITest {
     @Test
     @Transactional
     public void shouldCreateTestCase_andWriteItByWriteId() {
-        TestContainer savedContainer = testService.createTestContainer(List.of(TestToCreate.builder().title("Test").build()), null);
+        TestContainer savedContainer = testService.createTestContainer(List.of(new TestbefundTestDefinition().title("Test")), null);
         TestCase testCase = savedContainer.getTestCases().iterator().next();
-        testService.updateTestByWriteId(savedContainer.getWriteId(), testCase.getId(), TestResultT.POSITIVE);
+        testService.updateTestByWriteId(savedContainer.getWriteId(), testCase.getId(), TestbefundFindingResult.POSITIVE);
         Optional<TestContainer> persistentContainer = testService.getContainerByReadId(savedContainer.getReadId());
         assertThat(persistentContainer).isPresent();
         assertThat(persistentContainer.get().getTestCases())
