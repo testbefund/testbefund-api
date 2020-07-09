@@ -2,16 +2,17 @@ package de.testbefund.testbefundapi.client;
 
 import de.testbefund.testbefundapi.client.data.Client;
 import de.testbefund.testbefundapi.client.data.ClientRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import de.testbefund.testbefundapi.generated.api.OrganizationApi;
+import de.testbefund.testbefundapi.generated.api.model.TestbefundIssuingOrganization;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Collection;
-
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import javax.transaction.Transactional;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/client")
-public class ClientController {
+public class ClientController implements OrganizationApi {
 
     private final ClientRepository clientRepository;
 
@@ -19,26 +20,37 @@ public class ClientController {
         this.clientRepository = clientRepository;
     }
 
-    @PostMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
-    @ResponseBody
-    public Client createClient(@RequestBody Client client) {
+    @Override
+    @Transactional
+    public ResponseEntity<TestbefundIssuingOrganization> createOrganization(TestbefundIssuingOrganization testbefundIssuingOrganization) {
+        Client client = IssuingOrganizationMapper.MAPPER.restoreOne(testbefundIssuingOrganization);
         client.setId(null);
-        return clientRepository.save(client);
+        Client saved = clientRepository.save(client);
+        return ResponseEntity.ok(IssuingOrganizationMapper.MAPPER.mapOne(saved));
     }
 
-    @GetMapping(produces = APPLICATION_JSON_VALUE)
-    @ResponseBody
-    public Collection<Client> getAllClients() {
-        return clientRepository.findAll();
-    }
-
-    @GetMapping(path = "/{id}", produces = APPLICATION_JSON_VALUE)
-    public Client getClientById(@PathVariable("id") String id) {
-        return clientRepository.getOne(id);
-    }
-
-    @DeleteMapping(path = "/{id}")
-    public void deleteClientById(@PathVariable("id") String id) {
+    @Override
+    public ResponseEntity<Void> deleteOrganization(String id) {
         clientRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    public ResponseEntity<List<TestbefundIssuingOrganization>> getAllOrganizations() {
+        List<TestbefundIssuingOrganization> result = clientRepository.findAll()
+                .stream()
+                .map(IssuingOrganizationMapper.MAPPER::mapOne)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(result);
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<TestbefundIssuingOrganization> getOrganizationById(String id) {
+        return ResponseEntity.ok(
+                IssuingOrganizationMapper.MAPPER.mapOne(
+                        clientRepository.getOne(id)
+                )
+        );
     }
 }

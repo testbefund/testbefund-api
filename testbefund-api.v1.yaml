@@ -12,6 +12,8 @@ servers:
 tags:
   - name: test
     description: Test API
+  - name: organization
+    description: OrganizationsApi
 paths:
   /v1/test/auth:
     get:
@@ -136,6 +138,71 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/TestbefundUpdateFindingRequest'
+  /v1/organization:
+    get:
+      summary: Organizations
+      tags:
+        - organization
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TestbefundIssuingOrganization'
+      operationId: getAllOrganizations
+      description: Returns all organizations
+    parameters: []
+    post:
+      summary: Create Organization
+      operationId: createOrganization
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestbefundIssuingOrganization'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestbefundIssuingOrganization'
+        description: ''
+      tags:
+        - organization
+      description: Creates a new organization
+  '/v1/organization/{id}':
+    parameters:
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+    get:
+      summary: Your GET endpoint
+      tags:
+        - organization
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestbefundIssuingOrganization'
+      operationId: getOrganizationById
+      description: Returns a single organization by id
+    delete:
+      summary: ''
+      operationId: deleteOrganization
+      responses:
+        '200':
+          description: OK
+      description: Deletes an organization
+      tags:
+        - organization
 components:
   schemas:
     TestbefundIssuingOrganization:
