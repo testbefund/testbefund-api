@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: testbefund-api
-  version: '1.0'
+  version: 1.0.0-alpha
   contact:
     name: Testbefund
     url: 'https://www.testbefund.de'
