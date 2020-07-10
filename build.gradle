@@ -6,14 +6,14 @@ plugins {
 }
 
 group = 'de.testbefund'
-version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '11'
+version = '1.0.0-alpha'
+sourceCompatibility = JavaVersion.VERSION_11
 
 sourceSets {
     // for openapi generated stuff
     main {
         java {
-            srcDir 'build/generated/src/main/java'
+            srcDirs = ['build/generated/src/main/java']
         }
     }
 }
@@ -84,3 +84,5 @@ dependencies {
 test {
     useJUnitPlatform()
 }
+
+defaultTasks 'clean', 'openApiGenerate', 'build', 'test'
