@@ -1,4 +1,5 @@
 openapi: 3.0.0
+
 info:
   title: testbefund-api
   version: 1.0.0-alpha
@@ -6,94 +7,110 @@ info:
     name: Testbefund
     url: 'https://www.testbefund.de'
     email: anfragen@testbefund.de
-  description: API specification for testbefund
+  description: This is the reference server to manage testings and findings in the testbefund infrastructure.
+
 servers:
   - url: 'http://localhost:3000'
+
 tags:
-  - name: test
-    description: Test API
-  - name: organization
-    description: OrganizationsApi
+  - name: testing
+    description: Parts of the API responsible for the management of testings and findings.
+  - name: administration
+    description: Parts of the API responsible for the management of organizational tasks.
+  - name: public
+    description: Publicly available parts of the API.
+  - name: protected
+    description: Parts of the API whose access is restricted to properly authenticated clients.
+
 paths:
-  /v1/test/auth:
+  /v1/testing/auth:
     get:
-      summary: Your GET endpoint
+      summary: Checks authorization for protected resources.
       tags:
-        - test
+        - public
+        - testing
       responses:
         '204':
-          description: User has sufficient permissions to access protected testbefund APIs
+          description: The client has sufficient permissions to access protected resources of this API.
         '401':
-          description: User lacks sufficient permissions to access protected testbefund APIs
+          description: The client lacks sufficient permissions to access protected resources of this API.
       operationId: isAuthenticated
-      description: Validates that the user has sufficient permission to access the protected resources from this API.
+      description: Validates if the client has sufficient permission to access the protected resources of this API.
     parameters: []
-  /v1/test/container:
+
+  /v1/testing/container:
     post:
-      summary: ''
-      operationId: createTestContainer
+      summary: Creates a TestingContainer.
+      operationId: createTestingContainer
       responses:
         '200':
-          description: OK
+          description: The server returns the successfully created TestingContainer.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TestbefundTestContainer'
-      description: Testbefund protected resource. Allows creation of entire test containers.
+                $ref: '#/components/schemas/TestbefundTestingContainer'
+      description: Creates and registers a new TestingContainer.
       tags:
-        - test
+        - protected
+        - testing
       security:
         - OIDC: []
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TestbefundTestContainerDefinition'
-        description: |-
-          The container definition for the container that is going to be created.
-          The full container is returned upon creation.
-  '/v1/finding/{read-id}':
+              $ref: '#/components/schemas/TestbefundTestingContainerDefinition'
+        description: The container definition for the container that is going to be created. The full container is returned upon creation.
+
+  /v1/finding/{read-id}:
     parameters:
       - schema:
           type: string
         name: read-id
         in: path
         required: true
-        description: ''
+        description: The read-id for the expected FindingContainer to be returned.
     get:
-      summary: Your GET endpoint
+      summary: Returns the FindingContainer.
       tags:
-        - test
+        - protected
+        - testing
       responses:
         '200':
-          description: OK
+          description: The associated FindingContainer for the given read-id was found and is returned in the content.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/TestbefundFindingContainer'
+        '404':
+          description: There was no associated FindingContainer found for the given read-id.
       operationId: getFindingContainer
-      description: Returns a FindingContainer for a read ID. Testbefund public API.
-  '/v1/test/{write-id}':
+      description: Returns the FindingContainer associated to the given read-id.
+
+  /v1/testing/{write-id}:
     parameters:
       - schema:
           type: string
         name: write-id
         in: path
         required: true
+        description: The write-id for the expected TestingContainer to be returned.
     get:
-      summary: Your GET endpoint
+      summary: Returns TestingContainer.
       tags:
-        - test
+        - protected
+        - testing
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TestbefundTestContainer'
+                $ref: '#/components/schemas/TestbefundTestingContainer'
       operationId: getTestContainer
       description: 'Returns a writeable test container, containing both read and write information.'
-  '/v1/test/container/{write-id}/testcase/{test-id}/{test-result}':
+
+  /v1/testing/container/{write-id}/testcase/{test-id}/{testing-result}:
     parameters:
       - schema:
           type: string
@@ -113,13 +130,15 @@ paths:
     post:
       summary: Update Test
       tags:
-        - test
+        - protected
+        - testing
       responses:
         '204':
           description: No Content
       operationId: updateTest
       description: Updates the result of a single test container
-  /v1/test/container/batch-update:
+
+  /v1/testing/container/batch-update:
     post:
       summary: Container Batch Update
       operationId: updateContainerBatch
@@ -129,20 +148,23 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TestbefundTestContainer'
+                $ref: '#/components/schemas/TestbefundTestingContainer'
       tags:
-        - test
+        - protected
+        - testing
       description: Batch updates a few containers. Protected testbefund API.
       requestBody:
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/TestbefundUpdateFindingRequest'
+
   /v1/organization:
     get:
       summary: Organizations
       tags:
-        - organization
+        - protected
+        - administration
       responses:
         '200':
           description: OK
@@ -172,9 +194,11 @@ paths:
               $ref: '#/components/schemas/TestbefundIssuingOrganization'
         description: ''
       tags:
-        - organization
+        - protected
+        - administration
       description: Creates a new organization
-  '/v1/organization/{id}':
+
+  /v1/organization/{id}:
     parameters:
       - schema:
           type: string
@@ -184,7 +208,8 @@ paths:
     get:
       summary: Your GET endpoint
       tags:
-        - organization
+        - protected
+        - administration
       responses:
         '200':
           description: OK
@@ -202,7 +227,9 @@ paths:
           description: OK
       description: Deletes an organization
       tags:
-        - organization
+        - protected
+        - administration
+
 components:
   schemas:
     TestbefundIssuingOrganization:
@@ -215,7 +242,7 @@ components:
           type: string
         address:
           type: string
-        telefon:
+        phone:
           type: string
         email:
           type: string
@@ -223,8 +250,9 @@ components:
           type: string
         homepage:
           type: string
-      description: 'The issuing organization is responsible for the test and the test results. A user may use this as contact in case of question or if they need information about their test. Testbefund is the platform, the issuing organization performs the tests.'
-    TestbefundTestDefinition:
+      description: The issuing organization is responsible for the test and the test results. A user may use this as contact in case of question or if they need information about their test. Testbefund acts as platform, the issuing organization is responsible for the whole test procedure.
+
+    TestbefundTestingDefinition:
       title: TestbefundTestDefinition
       type: object
       description: A single test definition
@@ -233,21 +261,23 @@ components:
           type: string
         icdCode:
           type: string
-    TestbefundTestContainerDefinition:
-      title: TestbefundTestContainerDefinition
+
+    TestbefundTestingContainerDefinition:
+      title: TestbefundTestingContainerDefinition
       type: object
-      description: 'A single container definition, which is used to create n test containers'
+      description: A single container definition, which is used to create testing containers.
       properties:
-        testDefinitions:
+        testingDefinitions:
           type: array
           items:
-            $ref: '#/components/schemas/TestbefundTestDefinition'
+            $ref: '#/components/schemas/TestbefundTestingDefinition'
         issuingOrganization:
           type: string
+
     TestbefundFindingContainer:
       title: TestbefundFindingContainer
       type: object
-      description: Read-Only data for a test-container. Contains aggregated meta-data to inform the user of their status.
+      description: Read-Only data for a testing-container. Contains aggregated meta-data to inform the user about their status.
       properties:
         readId:
           type: string
@@ -260,6 +290,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TestbefundFinding'
+
     TestbefundFinding:
       title: TestbefundFinding
       type: object
@@ -272,10 +303,8 @@ components:
           $ref: '#/components/schemas/TestbefundFindingStatus'
         result:
           $ref: '#/components/schemas/TestbefundFindingResult'
-      description: |-
-        A single finding (A test that has a result). The result of the finding will be known once the status is DONE.
+      description: A single finding (a test with a result). The result of the finding will be known once the status is DONE. Finding result will be UNKNOWN as long as the finding status is REVIEW_PENDING or IN_PROGRESS.
 
-        Finding result will be UNKNOWN as long as the finding status is REVIEW_PENDING or IN_PROGRESS
     TestbefundFindingResult:
       type: string
       title: TestbefundFindingResult
@@ -283,7 +312,8 @@ components:
         - UNKNOWN
         - POSITIVE
         - NEGATIVE
-      description: 'Result of a finding, can be POSITIVE or NEGATIVE. If result is not known yet, it will be UNKNOWN'
+      description: Result of a finding, can be POSITIVE or NEGATIVE. If result is not known yet, it will be UNKNOWN.
+
     TestbefundFindingStatus:
       title: TestbefundFindingStatus
       type: string
@@ -291,10 +321,11 @@ components:
         - IN_PROGRESS
         - REVIEW_PENDING
         - DONE
-    TestbefundTestContainer:
-      title: TestbefundTestContainer
+
+    TestbefundTestingContainer:
+      title: TestbefundTestingContainer
       type: object
-      description: Writeable test container
+      description: Writeable testing container
       properties:
         writeId:
           type: string
@@ -303,11 +334,12 @@ components:
         testCases:
           type: array
           items:
-            $ref: '#/components/schemas/TestbefundTest'
+            $ref: '#/components/schemas/TestbefundTesting'
         issuer:
           $ref: '#/components/schemas/TestbefundIssuingOrganization'
-    TestbefundTest:
-      title: TestbefundTest
+
+    TestbefundTesting:
+      title: TestbefundTesting
       type: object
       properties:
         id:
@@ -318,10 +350,11 @@ components:
           $ref: '#/components/schemas/TestbefundFindingResult'
         icdCode:
           type: string
+
     TestbefundUpdateFindingRequest:
       title: TestbefundUpdateFindingRequest
       type: object
-      description: For batch updates
+      description: Helper type to aggregate multiple findings for a batched findings update request.
       properties:
         writeId:
           type: string
@@ -329,15 +362,17 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TestbefundUpdateSingleFinding'
+
     TestbefundUpdateSingleFinding:
       title: TestbefundUpdateSingleFinding
       type: object
-      description: For batch updates
+      description: HElper type for a single finding update request.
       properties:
         title:
           type: string
         testResult:
           $ref: '#/components/schemas/TestbefundFindingResult'
+
   securitySchemes:
     OIDC:
       type: openIdConnect
