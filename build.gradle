@@ -9,6 +9,14 @@ group = 'de.testbefund'
 version = '1.0.0-alpha'
 sourceCompatibility = JavaVersion.VERSION_11
 
+bootJar {
+    enabled = false
+}
+
+jar {
+    enabled = true
+}
+
 sourceSets {
     // for openapi generated stuff
     main {
