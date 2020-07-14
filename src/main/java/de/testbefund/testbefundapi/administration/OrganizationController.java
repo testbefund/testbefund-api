@@ -2,7 +2,7 @@ package de.testbefund.testbefundapi.administration;
 
 import de.testbefund.testbefundapi.administration.data.Organization;
 import de.testbefund.testbefundapi.administration.data.OrganizationRepository;
-import de.testbefund.testbefundapi.generated.api.OrganizationApi;
+import de.testbefund.testbefundapi.generated.api.AdministrationApi;
 import de.testbefund.testbefundapi.generated.api.model.TestbefundIssuingOrganization;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-public class OrganizationController implements OrganizationApi {
+public class OrganizationController implements AdministrationApi {
 
     private final OrganizationRepository organizationRepository;
 

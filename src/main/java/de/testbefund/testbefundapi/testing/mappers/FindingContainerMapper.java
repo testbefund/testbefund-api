@@ -1,11 +1,11 @@
 package de.testbefund.testbefundapi.testing.mappers;
 
+import de.testbefund.testbefundapi.testing.data.TestingContainer;
+import de.testbefund.testbefundapi.testing.data.TestingSample;
 import de.testbefund.testbefundapi.generated.api.model.TestbefundFinding;
 import de.testbefund.testbefundapi.generated.api.model.TestbefundFindingContainer;
 import de.testbefund.testbefundapi.generated.api.model.TestbefundFindingResult;
 import de.testbefund.testbefundapi.generated.api.model.TestbefundFindingStatus;
-import de.testbefund.testbefundapi.testing.data.TestingContainer;
-import de.testbefund.testbefundapi.testing.data.TestingSample;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -19,7 +19,7 @@ import java.time.temporal.ChronoUnit;
 @Mapper(unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface FindingContainerMapper {
 
-    FindingContainerMappSampleStateer MAPPER = Mappers.getMapper(FindingContainerMapper.class);
+    FindingContainerMapper MAPPER = Mappers.getMapper(FindingContainerMapper.class);
 
     @Mapping(source = "testingSamples", target = "findings")
     @Mapping(source = "organization", target = "issuer")
@@ -66,9 +66,9 @@ public interface FindingContainerMapper {
 
     default boolean isWithinGracePeriod(TestingSample testingSample) {
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime lastChangeDateTime = testCase.getLastChangeDateTime();
+        LocalDateTime lastChangeDateTime = testingSample.getLastChangeDateTime();
         long minutesElapsedSinceChange = ChronoUnit.MINUTES.between(lastChangeDateTime, now);
 
-        return minutesElapsedSinceChange <= testCase.getGracePeriodMinutes();
+        return minutesElapsedSinceChange <= testingSample.getGracePeriodMinutes();
     }
 }

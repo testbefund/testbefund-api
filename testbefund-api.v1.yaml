@@ -17,17 +17,12 @@ tags:
     description: Parts of the API responsible for the management of testings and findings.
   - name: administration
     description: Parts of the API responsible for the management of organizational tasks.
-  - name: public
-    description: Publicly available parts of the API.
-  - name: protected
-    description: Parts of the API whose access is restricted to properly authenticated clients.
 
 paths:
   /v1/testing/auth:
     get:
       summary: Checks authorization for protected resources.
       tags:
-        - public
         - testing
       responses:
         '204':
@@ -51,7 +46,6 @@ paths:
                 $ref: '#/components/schemas/TestbefundTestingContainer'
       description: Creates and registers a new TestingContainer.
       tags:
-        - protected
         - testing
       security:
         - OIDC: []
@@ -73,7 +67,6 @@ paths:
     get:
       summary: Returns the FindingContainer.
       tags:
-        - protected
         - testing
       responses:
         '200':
@@ -98,7 +91,6 @@ paths:
     get:
       summary: Returns TestingContainer.
       tags:
-        - protected
         - testing
       responses:
         '200':
@@ -130,7 +122,6 @@ paths:
     post:
       summary: Update Test
       tags:
-        - protected
         - testing
       responses:
         '204':
@@ -150,7 +141,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/TestbefundTestingContainer'
       tags:
-        - protected
         - testing
       description: Batch updates a few containers. Protected testbefund API.
       requestBody:
@@ -163,7 +153,6 @@ paths:
     get:
       summary: Organizations
       tags:
-        - protected
         - administration
       responses:
         '200':
@@ -194,7 +183,6 @@ paths:
               $ref: '#/components/schemas/TestbefundIssuingOrganization'
         description: ''
       tags:
-        - protected
         - administration
       description: Creates a new organization
 
@@ -208,7 +196,6 @@ paths:
     get:
       summary: Your GET endpoint
       tags:
-        - protected
         - administration
       responses:
         '200':
@@ -227,7 +214,6 @@ paths:
           description: OK
       description: Deletes an organization
       tags:
-        - protected
         - administration
 
 components:
@@ -281,7 +267,7 @@ components:
       properties:
         readId:
           type: string
-        date:
+        dateTime:
           type: string
           format: date-time
         issuer:
