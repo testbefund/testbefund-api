@@ -253,7 +253,7 @@ components:
       description: The issuing organization is responsible for the test and the test results. A user may use this as contact in case of question or if they need information about their test. Testbefund acts as platform, the issuing organization is responsible for the whole test procedure.
 
     TestbefundTestingDefinition:
-      title: TestbefundTestDefinition
+      title: TestbefundTestingDefinition
       type: object
       description: A single test definition
       properties:

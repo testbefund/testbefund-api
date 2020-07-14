@@ -1,4 +1,4 @@
-package de.testbefund.testbefundapi.test.service;
+package de.testbefund.testbefundapi.testing.service;
 
 import de.testbefund.testbefundapi.client.data.Client;
 import de.testbefund.testbefundapi.client.data.ClientRepository;
@@ -6,10 +6,10 @@ import de.testbefund.testbefundapi.generated.api.model.TestbefundFindingResult;
 import de.testbefund.testbefundapi.generated.api.model.TestbefundTestDefinition;
 import de.testbefund.testbefundapi.generated.api.model.TestbefundUpdateFindingRequest;
 import de.testbefund.testbefundapi.generated.api.model.TestbefundUpdateSingleFinding;
-import de.testbefund.testbefundapi.test.data.TestCase;
-import de.testbefund.testbefundapi.test.data.TestContainer;
-import de.testbefund.testbefundapi.test.data.TestContainerRepository;
-import de.testbefund.testbefundapi.test.data.TestStageStatus;
+import de.testbefund.testbefundapi.testing.data.TestCase;
+import de.testbefund.testbefundapi.testing.data.TestContainer;
+import de.testbefund.testbefundapi.testing.data.TestContainerRepository;
+import de.testbefund.testbefundapi.testing.data.TestStageStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -27,7 +27,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-class TestServiceTest {
+class TestingServiceTest {
 
     private TestService testService;
 

@@ -1,7 +1,6 @@
 package de.testbefund.testbefundapi.testing.data;
 
-//TODO: Consider renaming to SampleStatus
-//TODO: Add IGNORED state
+// TODO: Add IGNORED state
 public enum SampleStatus {
     ISSUED(false),
     CONFIRM_POSITIVE(true),

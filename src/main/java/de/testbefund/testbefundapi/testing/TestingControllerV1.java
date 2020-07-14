@@ -48,7 +48,7 @@ public class TestingControllerV1 implements TestingApi {
                 .map(ResponseEntity::ok)
                 .orElse(notFound().build());
     }
-in
+
     @Override
     public ResponseEntity<TestbefundTestingContainer> getTestingContainer(String writeId) {
         Optional<TestingContainer> containerByReadId = testingService.getContainerByWriteId(writeId);
@@ -66,8 +66,8 @@ in
 
     @Override
     public ResponseEntity<TestbefundTestingContainer> updateContainerBatch(TestbefundUpdateFindingRequest request) {
-        TestingContainer testContainer = testService.updateTestingContainer(request);
-        return ResponseEntity.ok(TestingContainerMapper.MAPPER.mapContainer(testContainer));
+        TestingContainer testingContainer = testService.updateTestingContainer(request);
+        return ResponseEntity.ok(TestingContainerMapper.MAPPER.mapContainer(testingContainer));
     }
 
     @Override

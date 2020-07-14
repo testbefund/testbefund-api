@@ -17,7 +17,6 @@ import java.time.LocalDateTime;
 @Builder(toBuilder = true)
 @Table(name = "sample")
 public class TestingSample {
-
     @Id
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "uuid2")

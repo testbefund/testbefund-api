@@ -93,4 +93,4 @@ test {
     useJUnitPlatform()
 }
 
-defaultTasks 'clean', 'openApiGenerate', 'build', 'test'
+//defaultTasks 'clean', 'openApiGenerate', 'build', 'test'

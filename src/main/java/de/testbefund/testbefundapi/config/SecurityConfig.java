@@ -28,35 +28,37 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.cors(withDefaults())
-                .authorizeRequests()
-                .antMatchers(HttpMethod.POST, "/v1/testing/container")
-                    .authenticated()
-                .antMatchers(HttpMethod.GET, "/v1/testing/auth")
-                    .authenticated()
-                .antMatchers("/organization/**")
-                    .authenticated()
-                .antMatchers("/v1/testing/**")
-                    .permitAll()
-                .antMatchers("/v1/finding/**")
-                    .permitAll()
-                .antMatchers("/error")
-                    .permitAll()
-                .and()
-                    .csrf()
-                    .disable()
-                    .oauth2ResourceServer()
-                    .jwt();
+        http
+            .cors(withDefaults())
+            .authorizeRequests()
+            .antMatchers(HttpMethod.POST, "/v1/testing/container")
+            .authenticated()
+            .antMatchers(HttpMethod.GET, "/v1/testing/auth")
+            .authenticated()
+            .antMatchers("/organization/**")
+            .authenticated()
+            .antMatchers("/v1/testing/**")
+            .permitAll()
+            .antMatchers("/v1/finding/**")
+            .permitAll()
+            .antMatchers("/error")
+            .permitAll()
+            .and()
+            .csrf().disable()
+            .oauth2ResourceServer()
+            .jwt();
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+
         configuration.setAllowedOrigins(allowedOrigins);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(allowedHeaders);
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
+
         return source;
     }
 }

@@ -1,12 +1,12 @@
-package de.testbefund.testbefundapi.test.service;
+package de.testbefund.testbefundapi.testing.service;
 
-import de.testbefund.testbefundapi.config.TestingSecurityConfig;
+import de.testbefund.testbefundapi.config.TestSecurityConfig;
 import de.testbefund.testbefundapi.generated.api.model.TestbefundFindingResult;
 import de.testbefund.testbefundapi.generated.api.model.TestbefundTestDefinition;
-import de.testbefund.testbefundapi.test.data.TestCase;
-import de.testbefund.testbefundapi.test.data.TestContainer;
-import de.testbefund.testbefundapi.test.data.TestContainerRepository;
-import de.testbefund.testbefundapi.test.data.TestStageStatus;
+import de.testbefund.testbefundapi.testing.data.TestCase;
+import de.testbefund.testbefundapi.testing.data.TestContainer;
+import de.testbefund.testbefundapi.testing.data.TestContainerRepository;
+import de.testbefund.testbefundapi.testing.data.TestStageStatus;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,9 +19,9 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Import(TestingSecurityConfig.class)
+@Import(TestSecurityConfig.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-class TestServiceITest {
+class TestingServiceInterfaceTest {
 
     @Autowired
     private TestService testService;

@@ -1,7 +1,6 @@
-package de.testbefund.testbefundapi.test;
+package de.testbefund.testbefundapi.testing;
 
-import de.testbefund.testbefundapi.administration.data.OrganizationRepository;
-import de.testbefund.testbefundapi.config.TestingSecurityConfig;
+import de.testbefund.testbefundapi.config.TestSecurityConfig;
 import de.testbefund.testbefundapi.generated.api.model.*;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.Test;
@@ -18,9 +17,9 @@ import java.net.URI;
 
 import static org.assertj.core.api.Assertions.*;
 
-@Import(TestingSecurityConfig.class)
+@Import(TestSecurityConfig.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class TestControllerTestV1 {
+class TestingControllerV1Test {
 
     private RestTemplate restTemplate = new RestTemplate();
 

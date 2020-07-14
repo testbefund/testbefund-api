@@ -21,9 +21,9 @@ import java.util.List;
 import static org.springframework.security.config.Customizer.withDefaults;
 
 @TestConfiguration
-@EnableWebSecurity
+@EnableWebSecurity()
 @Order(value = 99)
-public class TestingSecurityConfig extends SecurityConfig {
+public class TestSecurityConfig extends SecurityConfig {
 
     @Value("${testbefund.user}")
     private String masterUser;
@@ -40,37 +40,40 @@ public class TestingSecurityConfig extends SecurityConfig {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.cors(withDefaults())
-                .authorizeRequests()
-                .antMatchers(HttpMethod.POST, "/v1/testing/container")
-                .authenticated()
-                .antMatchers(HttpMethod.GET, "/v1/testing/auth")
-                .authenticated()
-                .antMatchers("/v1/testing/**")
-                .permitAll()
-                .antMatchers("/organization/**")
-                .authenticated()
-                .and()
-                .csrf().disable()
-                .httpBasic();
+            .authorizeRequests()
+            .antMatchers(HttpMethod.POST, "/v1/testing/container")
+            .authenticated()
+            .antMatchers(HttpMethod.GET, "/v1/testing/auth")
+            .authenticated()
+            .antMatchers("/v1/testing/**")
+            .permitAll()
+            .antMatchers("/organization/**")
+            .authenticated()
+            .and()
+            .csrf().disable()
+            .httpBasic();
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+
         configuration.setAllowedOrigins(allowedOrigins);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(allowedHeaders);
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
+
         return source;
     }
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-        auth.inMemoryAuthentication()
-                .withUser(masterUser)
-                .password(passwordEncoder().encode(masterPass))
-                .authorities("ROLE_USER");
+        auth
+            .inMemoryAuthentication()
+            .withUser(masterUser)
+            .password(passwordEncoder().encode(masterPass))
+            .authorities("ROLE_USER");
     }
 
     @Bean
