@@ -34,7 +34,7 @@ public class TestingContainer {
     @Column(name = "date_time")
     private LocalDateTime dateTime;
 
-    @JoinColumn(name = "client_id")
+    @JoinColumn(name = "organization_id")
     @ManyToOne()
     private Organization organization;
 

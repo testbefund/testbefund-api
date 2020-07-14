@@ -19,9 +19,9 @@ import java.time.temporal.ChronoUnit;
 @Mapper(unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface FindingContainerMapper {
 
-    FindingContainerMapper MAPPER = Mappers.getMapper(FindingContainerMapper.class);
+    FindingContainerMappSampleStateer MAPPER = Mappers.getMapper(FindingContainerMapper.class);
 
-    @Mapping(source = "testSamples", target = "findings")
+    @Mapping(source = "testingSamples", target = "findings")
     @Mapping(source = "organization", target = "issuer")
     TestbefundFindingContainer mapOne(TestingContainer testingContainer);
 
@@ -35,10 +35,11 @@ public interface FindingContainerMapper {
 
     @Named("sampleToStatusMapper")
     default TestbefundFindingStatus mapStatus(TestingSample testingSample) {
-        boolean isWithheld = isWithheldByGracePeriod(testingSample);
-
-        if (isWithheld && testingSample.getCurrentStatus().isHideable())
+        if (testingSample.getCurrentStatus().isAffectedByGracePeriod() &&
+            isWithinGracePeriod(testingSample)
+        ) {
             return TestbefundFindingStatus.REVIEW_PENDING;
+        }
 
         switch (testingSample.getCurrentStatus()) {
             case ISSUED:
@@ -52,7 +53,7 @@ public interface FindingContainerMapper {
 
     @Named("sampleToResultMapper")
     default TestbefundFindingResult mapResult(TestingSample testingSample) {
-        if (!isWithheldByGracePeriod(testingSample)) {
+        if (!isWithinGracePeriod(testingSample)) {
             switch (testingSample.getCurrentStatus()) {
                 case CONFIRM_POSITIVE:
                 case CONFIRM_NEGATIVE:
@@ -63,7 +64,7 @@ public interface FindingContainerMapper {
         return TestbefundFindingResult.UNKNOWN;
     }
 
-    default boolean isWithheldByGracePeriod(TestingSample testingSample) {
+    default boolean isWithinGracePeriod(TestingSample testingSample) {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime lastChangeDateTime = testCase.getLastChangeDateTime();
         long minutesElapsedSinceChange = ChronoUnit.MINUTES.between(lastChangeDateTime, now);

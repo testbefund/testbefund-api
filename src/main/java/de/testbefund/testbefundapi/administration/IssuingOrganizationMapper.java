@@ -1,6 +1,6 @@
-package de.testbefund.testbefundapi.client;
+package de.testbefund.testbefundapi.administration;
 
-import de.testbefund.testbefundapi.client.data.Client;
+import de.testbefund.testbefundapi.administration.data.Organization;
 import de.testbefund.testbefundapi.generated.api.model.TestbefundIssuingOrganization;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;

@@ -1,7 +1,7 @@
-package de.testbefund.testbefundapi.organization;
+package de.testbefund.testbefundapi.administration;
 
-import de.testbefund.testbefundapi.client.data.Client;
-import de.testbefund.testbefundapi.client.data.ClientRepository;
+import de.testbefund.testbefundapi.administration.data.Organization;
+import de.testbefund.testbefundapi.administration.data.OrganizationRepository;
 import de.testbefund.testbefundapi.generated.api.OrganizationApi;
 import de.testbefund.testbefundapi.generated.api.model.TestbefundIssuingOrganization;
 import org.springframework.http.ResponseEntity;
