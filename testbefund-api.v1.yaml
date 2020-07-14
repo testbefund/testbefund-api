@@ -110,7 +110,7 @@ paths:
       operationId: getTestContainer
       description: 'Returns a writeable test container, containing both read and write information.'
 
-  /v1/testing/container/{write-id}/testcase/{test-id}/{testing-result}:
+  /v1/testing/container/{write-id}/sample/{test-id}/{testing-result}:
     parameters:
       - schema:
           type: string
@@ -124,7 +124,7 @@ paths:
         required: true
       - schema:
           $ref: '#/components/schemas/TestbefundFindingResult'
-        name: test-result
+        name: testing-result
         in: path
         required: true
     post:
@@ -331,7 +331,7 @@ components:
           type: string
         readId:
           type: string
-        testCases:
+        testingSamples:
           type: array
           items:
             $ref: '#/components/schemas/TestbefundTesting'
@@ -366,11 +366,11 @@ components:
     TestbefundUpdateSingleFinding:
       title: TestbefundUpdateSingleFinding
       type: object
-      description: HElper type for a single finding update request.
+      description: Helper type for a single finding update request.
       properties:
         title:
           type: string
-        testResult:
+        testingResult:
           $ref: '#/components/schemas/TestbefundFindingResult'
 
   securitySchemes:

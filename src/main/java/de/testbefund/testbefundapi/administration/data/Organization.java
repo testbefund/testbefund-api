@@ -1,4 +1,4 @@
-package de.testbefund.testbefundapi.client.data;
+package de.testbefund.testbefundapi.administration.data;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,8 +14,8 @@ import javax.persistence.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "client")
-public class Client {
+@Table(name = "organization")
+public class Organization {
     @Id
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "uuid2")

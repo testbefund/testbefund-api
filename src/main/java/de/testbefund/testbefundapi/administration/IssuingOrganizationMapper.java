@@ -8,10 +8,8 @@ import org.mapstruct.factory.Mappers;
 
 @Mapper(unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface IssuingOrganizationMapper {
-
     IssuingOrganizationMapper MAPPER = Mappers.getMapper(IssuingOrganizationMapper.class);
 
-    TestbefundIssuingOrganization mapOne(Client client);
-    Client restoreOne(TestbefundIssuingOrganization client);
-
+    TestbefundIssuingOrganization mapOne(Organization organization);
+    Organization restoreOne(TestbefundIssuingOrganization organization);
 }

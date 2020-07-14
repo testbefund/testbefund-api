@@ -1,6 +1,6 @@
-package de.testbefund.testbefundapi.test.data;
+package de.testbefund.testbefundapi.testing.data;
 
-import de.testbefund.testbefundapi.client.data.Client;
+import de.testbefund.testbefundapi.administration.data.Organization;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,28 +13,32 @@ import java.util.Collection;
 
 import static javax.persistence.CascadeType.ALL;
 
-
 @Data
 @Entity
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "test_container")
-public class TestContainer {
+public class TestingContainer {
     @Id
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "uuid2")
     private String id;
+
     @Column(name = "read_id", unique = true, updatable = false)
     private String readId;
+
     @Column(name = "write_id", unique = true, updatable = false)
     private String writeId;
-    @Column(name = "date")
-    private LocalDateTime date;
+
+    @Column(name = "date_time")
+    private LocalDateTime dateTime;
+
     @JoinColumn(name = "client_id")
     @ManyToOne()
-    private Client client;
+    private Organization organization;
+
     @OneToMany(cascade = ALL, orphanRemoval = true)
     @JoinColumn(name = "test_container_id")
-    private Collection<TestCase> testCases;
+    private Collection<TestingSample> testingSamples;
 }

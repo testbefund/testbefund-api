@@ -1,7 +1,6 @@
-package de.testbefund.testbefundapi.test.data;
+package de.testbefund.testbefundapi.testing.data;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import de.testbefund.testbefundapi.client.data.Client;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,8 +15,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-@Table(name = "single_test")
-public class TestCase {
+@Table(name = "sample")
+public class TestingSample {
 
     @Id
     @GeneratedValue(generator = "uuid")
@@ -33,15 +32,15 @@ public class TestCase {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private TestStageStatus currentStatus;
+    private SampleStatus currentStatus;
 
-    @Column(name = "last_change_date")
-    private LocalDateTime lastChangeDate;
+    @Column(name = "last_change_date_time")
+    private LocalDateTime lastChangeDateTime;
 
     @Column(name = "icd_code")
     private String icdCode;
 
     @ManyToOne
     @JsonIgnore // Backreference, don't serialize
-    private TestContainer testContainer;
+    private TestingContainer testContainer;
 }

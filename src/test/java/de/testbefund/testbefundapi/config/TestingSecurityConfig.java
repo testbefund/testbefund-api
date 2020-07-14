@@ -4,13 +4,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.cors.CorsConfiguration;
@@ -25,7 +23,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @TestConfiguration
 @EnableWebSecurity
 @Order(value = 99)
-public class TestSecurityConfig extends SecurityConfig {
+public class TestingSecurityConfig extends SecurityConfig {
 
     @Value("${testbefund.user}")
     private String masterUser;
@@ -43,13 +41,13 @@ public class TestSecurityConfig extends SecurityConfig {
     protected void configure(HttpSecurity http) throws Exception {
         http.cors(withDefaults())
                 .authorizeRequests()
-                .antMatchers(HttpMethod.POST, "/v1/test/container")
+                .antMatchers(HttpMethod.POST, "/v1/testing/container")
                 .authenticated()
-                .antMatchers(HttpMethod.GET, "/v1/test/auth")
+                .antMatchers(HttpMethod.GET, "/v1/testing/auth")
                 .authenticated()
-                .antMatchers("/v1/test/**")
+                .antMatchers("/v1/testing/**")
                 .permitAll()
-                .antMatchers("/client/**")
+                .antMatchers("/organization/**")
                 .authenticated()
                 .and()
                 .csrf().disable()

@@ -1,4 +1,4 @@
-package de.testbefund.testbefundapi.client;
+package de.testbefund.testbefundapi.organization;
 
 import de.testbefund.testbefundapi.client.data.Client;
 import de.testbefund.testbefundapi.client.data.ClientRepository;
@@ -12,35 +12,39 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-public class ClientController implements OrganizationApi {
+public class OrganizationController implements OrganizationApi {
 
-    private final ClientRepository clientRepository;
+    private final OrganizationRepository organizationRepository;
 
-    public ClientController(ClientRepository clientRepository) {
-        this.clientRepository = clientRepository;
+    public OrganizationController(OrganizationRepository organizationRepository) {
+        this.organizationRepository = organizationRepository;
     }
 
     @Override
     @Transactional
     public ResponseEntity<TestbefundIssuingOrganization> createOrganization(TestbefundIssuingOrganization testbefundIssuingOrganization) {
-        Client client = IssuingOrganizationMapper.MAPPER.restoreOne(testbefundIssuingOrganization);
-        client.setId(null);
-        Client saved = clientRepository.save(client);
-        return ResponseEntity.ok(IssuingOrganizationMapper.MAPPER.mapOne(saved));
+        Organization organization = IssuingOrganizationMapper.MAPPER.restoreOne(testbefundIssuingOrganization);
+
+        organization.setId(null);
+        Organization savedOrganization = organizationRepository.save(organization);
+
+        return ResponseEntity.ok(IssuingOrganizationMapper.MAPPER.mapOne(savedOrganization));
     }
 
     @Override
     public ResponseEntity<Void> deleteOrganization(String id) {
-        clientRepository.deleteById(id);
+        organizationRepository.deleteById(id);
+
         return ResponseEntity.noContent().build();
     }
 
     @Override
     public ResponseEntity<List<TestbefundIssuingOrganization>> getAllOrganizations() {
-        List<TestbefundIssuingOrganization> result = clientRepository.findAll()
-                .stream()
-                .map(IssuingOrganizationMapper.MAPPER::mapOne)
-                .collect(Collectors.toList());
+        List<TestbefundIssuingOrganization> result = organizationRepository.findAll()
+            .stream()
+            .map(IssuingOrganizationMapper.MAPPER::mapOne)
+            .collect(Collectors.toList());
+
         return ResponseEntity.ok(result);
     }
 
@@ -49,7 +53,7 @@ public class ClientController implements OrganizationApi {
     public ResponseEntity<TestbefundIssuingOrganization> getOrganizationById(String id) {
         return ResponseEntity.ok(
                 IssuingOrganizationMapper.MAPPER.mapOne(
-                        clientRepository.getOne(id)
+                        organizationRepository.getOne(id)
                 )
         );
     }

@@ -1,12 +1,8 @@
 package de.testbefund.testbefundapi.test;
 
-import de.testbefund.testbefundapi.client.data.Client;
-import de.testbefund.testbefundapi.client.data.ClientRepository;
-import de.testbefund.testbefundapi.config.TestSecurityConfig;
+import de.testbefund.testbefundapi.administration.data.OrganizationRepository;
+import de.testbefund.testbefundapi.config.TestingSecurityConfig;
 import de.testbefund.testbefundapi.generated.api.model.*;
-import de.testbefund.testbefundapi.test.data.TestCase;
-import de.testbefund.testbefundapi.test.data.TestContainer;
-import de.testbefund.testbefundapi.test.data.TestStageStatus;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,77 +12,93 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
 
 import static org.assertj.core.api.Assertions.*;
 
-@Import(TestSecurityConfig.class)
+@Import(TestingSecurityConfig.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class TestControllerTestV1 {
 
     private RestTemplate restTemplate = new RestTemplate();
 
     @Autowired
-    private ClientRepository clientRepository;
+    private OrganizationRepository organizationRepository;
 
     @LocalServerPort
     private int port;
 
     private String baseUri() {
-        return "http://localhost:" + port + "/v1/test";
+        return "http://localhost:" + port + "/v1/testing";
     }
 
     private String readBaseUri() {
         return "http://localhost:" + port + "/v1";
     }
 
-    private ResponseEntity<TestbefundTestContainer> createSampleContainer() {
-        TestbefundTestContainerDefinition createTestContainerRequest = new TestbefundTestContainerDefinition()
-                .addTestDefinitionsItem(new TestbefundTestDefinition()
+    private ResponseEntity<TestbefundTestingContainer> createTestingContainer() {
+        TestbefundTestingContainerDefinition body =
+            new TestbefundTestingContainerDefinition()
+                .addTestingDefinitionsItem(new TestbefundTestingDefinition()
                         .icdCode("ICD1234")
                         .title("Test"));
-        RequestEntity<TestbefundTestContainerDefinition> request = RequestEntity.post(URI.create(baseUri() + "/container"))
+        RequestEntity<TestbefundTestingContainerDefinition> request =
+            RequestEntity.post(URI.create(baseUri() + "/container"))
                 .header("Authorization", "Basic dGVzdDp0ZXN0") // user=test, password=test
-                .body(createTestContainerRequest);
-        return restTemplate.exchange(request, TestbefundTestContainer.class);
+                .body(body);
+
+        return restTemplate.exchange(request, TestbefundTestingContainer.class);
     }
 
-    private TestbefundFindingContainer getFindingByReadId(String readId) {
-        TestbefundFindingContainer body = restTemplate.getForEntity(readBaseUri() + "/finding/" + readId, TestbefundFindingContainer.class).getBody();
+    private TestbefundFindingContainer getFindingContainerByReadId(String readId) {
+        TestbefundFindingContainer body =
+            restTemplate
+                .getForEntity(readBaseUri() + "/finding/" + readId, TestbefundFindingContainer.class)
+                .getBody();
+
         assertThat(body).isNotNull();
+
         return body;
     }
 
     @Test
-    void shouldCreateTestContainer() {
-        ResponseEntity<TestbefundTestContainer> response = createSampleContainer();
+    void Post_Testing_ForUnknownId_ShouldCreateTestingContainer() {
+        ResponseEntity<TestbefundTestingContainer> response = createTestingContainer();
+
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
     }
 
     @Test
-    void shouldGetTheTestContainer_byReadId() {
-        TestbefundTestContainer container = createSampleContainer().getBody();
-        assertThat(container).isNotNull();
-        TestbefundFindingContainer readContainer = getFindingByReadId(container.getReadId());
-        assertThat(readContainer).isNotNull();
-        assertThat(readContainer.getFindings().iterator().next().getIcdCode()).isEqualTo("ICD1234");
-        assertThat(readContainer.getFindings().iterator().next().getTitle()).isEqualTo("Test");
-        assertThat(readContainer.getFindings().iterator().next().getResult()).isEqualTo(TestbefundFindingResult.UNKNOWN);
+    void Get_Finding_ForKnownId_ShouldGetTestingContainerById() {
+        TestbefundTestingContainer newTestingContainer = createTestingContainer().getBody();
+
+        assertThat(newTestingContainer).isNotNull();
+
+        TestbefundFindingContainer findingContainer = getFindingContainerByReadId(newTestingContainer.getReadId());
+
+        assertThat(findingContainer).isNotNull();
+        assertThat(findingContainer.getFindings().iterator().next().getIcdCode())
+            .isEqualTo("ICD1234");
+        assertThat(findingContainer.getFindings().iterator().next().getTitle())
+            .isEqualTo("Test");
+        assertThat(findingContainer.getFindings().iterator().next().getResult())
+            .isEqualTo(TestbefundFindingResult.UNKNOWN);
     }
 
     @Test
-    void shouldUpdateContainer() {
-        TestbefundTestContainer container = createSampleContainer().getBody();
-        assertThat(container).isNotNull();
-        TestbefundTest testCase = container.getTestCases().iterator().next();
-        String uri = String.format("/container/%s/testcase/%s/%s", container.getWriteId(), testCase.getId(), TestbefundFindingResult.NEGATIVE);
+    void Post_Testing_ForKnownId_shouldUpdateContainer() {
+        TestbefundTestingContainer newTestingContainer = createTestingContainer().getBody();
+
+        assertThat(newTestingContainer).isNotNull();
+
+        TestbefundTesting testingSample = newTestingContainer.getTestingSample().iterator().next();
+        String uri = String.format("/container/%s/testcase/%s/%s", newTestingContainer.getWriteId(), testingSample.getId(), TestbefundFindingResult.NEGATIVE);
         ResponseEntity<String> response = restTemplate.postForEntity(baseUri() + uri, null, String.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-        TestbefundFindingContainer readContainer = getFindingByReadId(container.getReadId());
+        TestbefundFindingContainer readContainer = getFindingContainerByReadId(newTestingContainer.getReadId());
         assertThat(readContainer.getFindings())
                 .extracting(TestbefundFinding::getTitle, TestbefundFinding::getResult)
                 .containsExactly(Tuple.tuple("Test", TestbefundFindingResult.NEGATIVE));
@@ -94,7 +106,7 @@ class TestControllerTestV1 {
 
     @Test
     void shouldReturnNotFound_whenTryingToUpdateNonExistingContainer() {
-        TestbefundTestContainer container = createSampleContainer().getBody();
+        TestbefundTestingContainer container = createTestingContainer().getBody();
         assertThat(container).isNotNull();
         String uri = String.format("/testcase/%s/%s", "FOOBAR", TestbefundFindingResult.NEGATIVE);
         assertThatThrownBy(() -> restTemplate.postForEntity(baseUri() + uri, null, String.class))
@@ -119,7 +131,7 @@ class TestControllerTestV1 {
                 .homepage("home.page")
                 .openingHours("10-19h")
                 .build();
-        return clientRepository.saveAndFlush(client);
+        return organizationRepository.saveAndFlush(client);
     }
 
     private TestbefundTestContainer exchangeForTestContainer(TestbefundTestContainerDefinition createTestContainerRequest) {
@@ -133,7 +145,7 @@ class TestControllerTestV1 {
 
     @Test
     void shouldGetContainer_byWriteId() {
-        TestbefundTestContainer container = createSampleContainer().getBody();
+        TestbefundTestContainer container = createTestingContainer().getBody();
         assertThat(container).isNotNull();
         String uri = String.format("/%s", container.getWriteId());
         ResponseEntity<TestbefundTestContainer> testContainer = restTemplate.getForEntity(baseUri() + uri, TestbefundTestContainer.class);
@@ -146,7 +158,7 @@ class TestControllerTestV1 {
 
     @Test
     void shouldUpdateTest_byTitle() {
-        TestbefundTestContainer container = createSampleContainer().getBody();
+        TestbefundTestContainer container = createTestingContainer().getBody();
         TestbefundTest testCase = container.getTestCases().iterator().next();
         String url = String.format("%s/container/batch-update", baseUri());
         TestbefundUpdateSingleFinding singleTest = new TestbefundUpdateSingleFinding()
@@ -165,7 +177,7 @@ class TestControllerTestV1 {
 
     @Test
     void shouldCreateWithClient() {
-        Client issuer = clientRepository.saveAndFlush(Client.builder().name("Testclient").build());
+        Client issuer = organizationRepository.saveAndFlush(Client.builder().name("Testclient").build());
         TestbefundTestContainerDefinition createTestContainerRequest = new TestbefundTestContainerDefinition()
                 .addTestDefinitionsItem(new TestbefundTestDefinition().title("Test").icdCode("ICD1234"))
                 .issuingOrganization(issuer.getId());
@@ -176,7 +188,7 @@ class TestControllerTestV1 {
         assertThat(resultingContainer.getIssuer().getId()).isEqualTo(issuer.getId());
 
         // Verify that we can actually read the data (TestContainerReadT contains the client)
-        TestbefundFindingContainer finding = getFindingByReadId(resultingContainer.getReadId());
+        TestbefundFindingContainer finding = getFindingContainerByReadId(resultingContainer.getReadId());
         assertThat(finding.getIssuer()).isNotNull();
         assertThat(finding.getIssuer().getName()).isEqualTo(issuer.getName());
     }
