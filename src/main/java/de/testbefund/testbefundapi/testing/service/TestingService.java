@@ -5,9 +5,10 @@ import de.testbefund.testbefundapi.generated.api.model.TestbefundFindingResult;
 import de.testbefund.testbefundapi.generated.api.model.TestbefundTestingDefinition;
 import de.testbefund.testbefundapi.generated.api.model.TestbefundUpdateFindingRequest;
 import de.testbefund.testbefundapi.generated.api.model.TestbefundUpdateSingleFinding;
-import de.testbefund.testbefundapi.testing.data.TestingSample;
+import de.testbefund.testbefundapi.testing.data.SampleStatus;
 import de.testbefund.testbefundapi.testing.data.TestingContainer;
 import de.testbefund.testbefundapi.testing.data.TestingContainerRepository;
+import de.testbefund.testbefundapi.testing.data.TestingSample;
 import de.testbefund.testbefundapi.testing.error.NoTestingSampleFoundException;
 import de.testbefund.testbefundapi.testing.error.TestingSampleNameNotUniqueException;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -17,10 +18,10 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.List;
 
 @Service
 public class TestingService {
@@ -53,7 +54,7 @@ public class TestingService {
                 .build();
         Optional.ofNullable(clientId)
                 .flatMap(organizationRepository::findById)
-                .ifPresent(container::setClient);
+                .ifPresent(container::setOrganization);
         return testingContainerRepository.save(container);
     }
 
@@ -80,7 +81,7 @@ public class TestingService {
         return testingContainerRepository
                 .findByWriteId(findingRequest.getWriteId())
                 .map(container -> batchUpdateContainer(container, findingRequest))
-                .orElseThrow(NoTestingSampleFoundException);
+                .orElseThrow(NoTestingSampleFoundException::new);
     }
 
     private TestingContainer batchUpdateContainer(TestingContainer testingContainer, TestbefundUpdateFindingRequest request) {
@@ -97,8 +98,8 @@ public class TestingService {
         TestingSample sampleToUpdate =
             testingContainer.getTestingSamples()
                 .stream()
-                .filter(testingSample ->
-                    testingSample
+                .filter(sample ->
+                    sample
                         .getTitle()
                         .toLowerCase()
                         .equals(singleFinding.getTitle().toLowerCase())
@@ -108,30 +109,30 @@ public class TestingService {
                     new RuntimeException("Updated failed; No test found for " + singleFinding.getTitle())
                 );
 
-        updateTestCase(singleTest.getTestingResult(), sampleToUpdate);
+        updateSample(singleFinding.getTestingResult(), sampleToUpdate);
     }
 
     private void updateTestingContainer(TestingContainer testingContainer, String testingId, TestbefundFindingResult result) {
-        testingContainer.getTestingSample()
+        testingContainer.getTestingSamples()
                 .stream()
-                .filter(testCase -> testingSample.getId().equals(testingId))
+                .filter(sample -> sample.getId().equals(testingId))
                 .findAny()
-                .ifPresentOrElse(testingSample -> updateTestingSample(result, testingSample), this::throwNoTestingSampleFound);
+                .ifPresentOrElse(testingSample -> updateSample(result, testingSample), this::throwNoTestingSampleFound);
     }
 
-    private void updateTestCase(TestbefundFindingResult testResult, TestingSample testingSample) {
-        switch (testResult) {
+    private void updateSample(TestbefundFindingResult result, TestingSample sample) {
+        switch (result) {
             case UNKNOWN:
-                testingSample.setCurrentStatus(SampleStatus.ISSUED);
+                sample.setCurrentStatus(SampleStatus.ISSUED);
                 break;
             case POSITIVE:
-                testingSample.setCurrentStatus(SampleStatus.CONFIRM_POSITIVE);
+                sample.setCurrentStatus(SampleStatus.CONFIRM_POSITIVE);
                 break;
             case NEGATIVE:
-                testingSample.setCurrentStatus(SampleStatus.CONFIRM_NEGATIVE);
+                sample.setCurrentStatus(SampleStatus.CONFIRM_NEGATIVE);
                 break;
         }
-        testingSample.setLastChangeDate(currentDateTimeSupplier.get());
+        sample.setLastChangeDateTime(currentDateTimeSupplier.get());
     }
 
     private void throwNoTestingSampleFound() {
@@ -148,7 +149,7 @@ public class TestingService {
         return TestingSample.builder()
                 .title(testingDefinition.getTitle())
                 .icdCode(testingDefinition.getIcdCode())
-                .lastChangeDate(currentDateTimeSupplier.get())
+                .lastChangeDateTime(currentDateTimeSupplier.get())
                 .gracePeriodMinutes(gracePeriod)
                 .currentStatus(SampleStatus.ISSUED)
                 .build();

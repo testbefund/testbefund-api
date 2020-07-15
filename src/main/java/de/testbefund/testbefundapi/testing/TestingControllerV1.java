@@ -1,6 +1,6 @@
 package de.testbefund.testbefundapi.testing;
 
-import de.testbefund.testbefundapi.generated.api.AdministrationApi;
+import de.testbefund.testbefundapi.generated.api.TestingApi;
 import de.testbefund.testbefundapi.generated.api.model.*;
 import de.testbefund.testbefundapi.testing.data.TestingContainer;
 import de.testbefund.testbefundapi.testing.mappers.FindingContainerMapper;
@@ -9,7 +9,6 @@ import de.testbefund.testbefundapi.testing.service.TestingService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Optional;
@@ -19,7 +18,7 @@ import static org.springframework.http.ResponseEntity.notFound;
 
 @RestController
 @EnableWebSecurity
-public class TestingControllerV1 implements AdministrationApi {
+public class TestingControllerV1 implements TestingApi {
 
     private final TestingService testingService;
 
@@ -32,7 +31,7 @@ public class TestingControllerV1 implements AdministrationApi {
     public ResponseEntity<TestbefundTestingContainer> createTestingContainer(
         TestbefundTestingContainerDefinition testingRequests
     ) {
-        TestingContainer testingContainer = testService.createTestingContainer(
+        TestingContainer testingContainer = testingService.createTestingContainer(
                 testingRequests.getTestingDefinitions(),
                 testingRequests.getIssuingOrganization()
         );
@@ -66,12 +65,12 @@ public class TestingControllerV1 implements AdministrationApi {
 
     @Override
     public ResponseEntity<TestbefundTestingContainer> updateContainerBatch(TestbefundUpdateFindingRequest request) {
-        TestingContainer testingContainer = testService.updateTestingContainer(request);
+        TestingContainer testingContainer = testingService.updateFindingRequest(request);
         return ResponseEntity.ok(TestingContainerMapper.MAPPER.mapContainer(testingContainer));
     }
 
     @Override
-    public ResponseEntity<Void> updateTest(String writeId, String testId, TestbefundFindingResult testingResult) {
+    public ResponseEntity<Void> updateTesting(String writeId, String testId, TestbefundFindingResult testingResult) {
         testingService.updateTestingByWriteId(writeId, testId, testingResult);
         return noContent().build();
     }

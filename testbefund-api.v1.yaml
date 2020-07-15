@@ -99,7 +99,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TestbefundTestingContainer'
-      operationId: getTestContainer
+      operationId: getTestingContainer
       description: 'Returns a writeable test container, containing both read and write information.'
 
   /v1/testing/container/{write-id}/sample/{test-id}/{testing-result}:
@@ -126,7 +126,7 @@ paths:
       responses:
         '204':
           description: No Content
-      operationId: updateTest
+      operationId: updateTesting
       description: Updates the result of a single test container
 
   /v1/testing/container/batch-update:

@@ -41,5 +41,5 @@ public class TestingSample {
 
     @ManyToOne
     @JsonIgnore // Backreference, don't serialize
-    private TestingContainer testContainer;
+    private TestingContainer testingContainer;
 }
