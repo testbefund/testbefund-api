@@ -20,8 +20,8 @@ public class TestbefundApiApplication {
     }
 
 
-    @Bean(name = "currentDateSupplier")
-    public Supplier<LocalDateTime> localDateSupplier() {
+    @Bean(name = "currentDateTimeSupplier")
+    public Supplier<LocalDateTime> localDateTimeSupplier() {
         return LocalDateTime::now; // For testability, we expose the current date via the supplier interface.
     }
 

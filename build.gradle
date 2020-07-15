@@ -6,8 +6,16 @@ plugins {
 }
 
 group = 'de.testbefund'
-version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '11'
+version = '1.0.0-alpha'
+sourceCompatibility = JavaVersion.VERSION_11
+
+bootJar {
+    enabled = false
+}
+
+jar {
+    enabled = true
+}
 
 sourceSets {
     // for openapi generated stuff
@@ -29,21 +37,21 @@ openApiGenerate {
     outputDir = "${rootDir}/build/generated".toString()
     verbose = true
     configOptions = [
-            useOptional          : "true",
-            swaggerDocketConfig  : "false",
-            performBeanValidation: "false",
-            useBeanValidation    : "false",
-            useTags              : "true",
-            singleContentTypes   : "true",
-            serializableModel    : "true",
-            interfaceOnly        : "true",
-            java8                : "false",
-            dateLibrary          : "java8",
-            basePackage          : "de.testbefund.testbefundapi.generated.api",
-            configPackage        : "de.testbefund.testbefundapi.generated.api",
-            apiPackage           : "de.testbefund.testbefundapi.generated.api",
-            modelPackage         : "de.testbefund.testbefundapi.generated.api.model",
-            invokerPackage       : "de.testbefund.testbefundapi.generated.api",
+        useOptional          : "true",
+        swaggerDocketConfig  : "false",
+        performBeanValidation: "false",
+        useBeanValidation    : "false",
+        useTags              : "true",
+        singleContentTypes   : "true",
+        serializableModel    : "true",
+        interfaceOnly        : "true",
+        java8                : "false",
+        dateLibrary          : "java8",
+        basePackage          : "de.testbefund.testbefundapi.generated.api",
+        configPackage        : "de.testbefund.testbefundapi.generated.api",
+        apiPackage           : "de.testbefund.testbefundapi.generated.api",
+        modelPackage         : "de.testbefund.testbefundapi.generated.api.model",
+        invokerPackage       : "de.testbefund.testbefundapi.generated.api",
     ]
 }
 
@@ -84,3 +92,5 @@ dependencies {
 test {
     useJUnitPlatform()
 }
+
+//defaultTasks 'clean', 'openApiGenerate', 'build', 'test'

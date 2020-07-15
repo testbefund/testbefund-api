@@ -1,4 +1,4 @@
-package de.testbefund.testbefundapi.client.data;
+package de.testbefund.testbefundapi.administration.data;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,14 +8,13 @@ import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 
-
 @Data
 @Entity
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "client")
-public class Client {
+@Table(name = "organization")
+public class Organization {
     @Id
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "uuid2")
@@ -25,7 +24,7 @@ public class Client {
     @Column(name = "address")
     private String address;
     @Column(name = "phone")
-    private String telefon;
+    private String phone;
     @Column(name = "email")
     private String email;
     @Column(name = "opening_hours")
