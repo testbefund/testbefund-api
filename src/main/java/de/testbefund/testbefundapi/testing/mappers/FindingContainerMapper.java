@@ -16,6 +16,8 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 
+import static de.testbefund.testbefundapi.testing.data.SampleStatus.*;
+
 @Mapper(unmappedTargetPolicy = ReportingPolicy.ERROR)
 public interface FindingContainerMapper {
 
@@ -56,6 +58,7 @@ public interface FindingContainerMapper {
         if (!isWithinGracePeriod(testingSample)) {
             switch (testingSample.getCurrentStatus()) {
                 case CONFIRM_POSITIVE:
+                    return TestbefundFindingResult.POSITIVE;
                 case CONFIRM_NEGATIVE:
                     return TestbefundFindingResult.NEGATIVE;
             }
@@ -66,9 +69,9 @@ public interface FindingContainerMapper {
 
     default boolean isWithinGracePeriod(TestingSample testingSample) {
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime lastChangeDateTime = testingSample.getLastChangeDateTime();
-        long minutesElapsedSinceChange = ChronoUnit.MINUTES.between(lastChangeDateTime, now);
+        LocalDateTime lastChangedAt = testingSample.getLastChangeDateTime();
+        long minutesBetween = ChronoUnit.MINUTES.between(lastChangedAt, now);
 
-        return minutesElapsedSinceChange <= testingSample.getGracePeriodMinutes();
+        return minutesBetween <= testingSample.getGracePeriodMinutes();
     }
 }

@@ -88,13 +88,13 @@ public class TestingService {
         request
             .getFindings()
             .forEach(singleFinding ->
-                updateSingleTest(singleFinding, testingContainer)
+                updateSingleTesting(singleFinding, testingContainer)
             );
 
         return testingContainer;
     }
 
-    private void updateSingleTest(TestbefundUpdateSingleFinding singleFinding, TestingContainer testingContainer) {
+    private void updateSingleTesting(TestbefundUpdateSingleFinding singleFinding, TestingContainer testingContainer) {
         TestingSample sampleToUpdate =
             testingContainer.getTestingSamples()
                 .stream()

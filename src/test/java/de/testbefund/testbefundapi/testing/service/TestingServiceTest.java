@@ -1,15 +1,15 @@
 package de.testbefund.testbefundapi.testing.service;
 
-import de.testbefund.testbefundapi.client.data.Client;
-import de.testbefund.testbefundapi.client.data.ClientRepository;
+import de.testbefund.testbefundapi.administration.data.Organization;
+import de.testbefund.testbefundapi.administration.data.OrganizationRepository;
 import de.testbefund.testbefundapi.generated.api.model.TestbefundFindingResult;
-import de.testbefund.testbefundapi.generated.api.model.TestbefundTestDefinition;
+import de.testbefund.testbefundapi.generated.api.model.TestbefundTestingDefinition;
 import de.testbefund.testbefundapi.generated.api.model.TestbefundUpdateFindingRequest;
 import de.testbefund.testbefundapi.generated.api.model.TestbefundUpdateSingleFinding;
-import de.testbefund.testbefundapi.testing.data.TestCase;
-import de.testbefund.testbefundapi.testing.data.TestContainer;
-import de.testbefund.testbefundapi.testing.data.TestContainerRepository;
-import de.testbefund.testbefundapi.testing.data.TestStageStatus;
+import de.testbefund.testbefundapi.testing.data.SampleStatus;
+import de.testbefund.testbefundapi.testing.data.TestingContainer;
+import de.testbefund.testbefundapi.testing.data.TestingContainerRepository;
+import de.testbefund.testbefundapi.testing.data.TestingSample;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -21,21 +21,22 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 import static java.util.List.of;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import static org.assertj.core.api.Assertions.*;
+
 class TestingServiceTest {
 
-    private TestService testService;
+    private TestingService testingService;
 
     @Mock
-    private TestContainerRepository testContainerRepository;
+    private TestingContainerRepository testingContainerRepository;
 
     @Mock
-    private ClientRepository clientRepository;
+    private OrganizationRepository organizationRepository;
 
     @Mock
     private Supplier<LocalDateTime> currentDateSupplier;
@@ -44,142 +45,178 @@ class TestingServiceTest {
     private Supplier<String> idProvider;
 
     @BeforeEach
-    void setUp() {
+    void setup() {
         initMocks(this);
-        testService = new TestService(testContainerRepository, clientRepository, currentDateSupplier, idProvider);
-        Mockito.when(testContainerRepository.save(any())).thenAnswer(returnsFirstArg());
+        testingService = new TestingService(testingContainerRepository, organizationRepository, currentDateSupplier, idProvider);
+        Mockito.when(testingContainerRepository.save(any())).thenAnswer(returnsFirstArg());
     }
 
 
     @Test
     void shouldCreateTestContainer_withAllProvidedTests() {
-        TestContainer testContainer = testService.createTestContainer(of(
-                definitionFor("TitleA", null),
-                definitionFor("TitleB", null)
+        TestingContainer newContainer = testingService.createTestingContainer(of(
+            definitionFor("TitleA", null),
+            definitionFor("TitleB", null)
         ), null);
-        assertThat(testContainer.getTestCases())
-                .extracting(TestCase::getTitle)
-                .containsExactlyInAnyOrder("TitleA", "TitleB");
+
+        assertThat(newContainer.getTestingSamples())
+            .extracting(TestingSample::getTitle)
+            .containsExactlyInAnyOrder("TitleA", "TitleB");
     }
 
     @Test
     void shouldInitializeTests_withCorrectData() {
-        TestContainer testContainer = testService.createTestContainer(of(definitionFor("TitleA", null)), null);
-        assertThat(testContainer.getTestCases()).hasSize(1);
-        TestCase testCase = testContainer.getTestCases().iterator().next();
-        assertThat(testCase.getId()).isNull(); // Filled in by auto generation
-        assertThat(testCase.getCurrentStatus()).isEqualTo(TestStageStatus.ISSUED);
+        TestingContainer newContainer =
+            testingService.createTestingContainer(
+                of(definitionFor("TitleA", null)), null);
+
+        assertThat(newContainer.getTestingSamples()).hasSize(1);
+
+        TestingSample sample = newContainer.getTestingSamples().iterator().next();
+
+        assertThat(sample.getId()).isNull(); // Filled in by auto generation
+        assertThat(sample.getCurrentStatus()).isEqualTo(SampleStatus.ISSUED);
     }
 
-    private TestbefundTestDefinition definitionFor(String title, String icdCode) {
-        TestbefundTestDefinition testbefundTestDefinition = new TestbefundTestDefinition();
-        testbefundTestDefinition.setTitle(title);
-        testbefundTestDefinition.setIcdCode(icdCode);
-        return testbefundTestDefinition;
+    private TestbefundTestingDefinition definitionFor(String title, String icdCode) {
+        TestbefundTestingDefinition definition = new TestbefundTestingDefinition();
+
+        definition.setTitle(title);
+        definition.setIcdCode(icdCode);
+
+        return definition;
     }
 
 
     @Test
     void shouldCreateTest_withICDCode() {
-        TestbefundTestDefinition testToCreate = definitionFor("Title", "icd1234");
-        TestContainer testContainer = testService.createTestContainer(of(testToCreate), null);
-        assertThat(testContainer.getTestCases())
-                .extracting(TestCase::getIcdCode)
-                .containsExactly("icd1234");
+        TestbefundTestingDefinition testToCreate = definitionFor("Title", "icd1234");
+        TestingContainer testContainer = testingService.createTestingContainer(of(testToCreate), null);
+
+        assertThat(testContainer.getTestingSamples())
+            .extracting(TestingSample::getIcdCode)
+            .containsExactly("icd1234");
     }
 
     @Test
     void shouldPersistTestContainer() {
-        TestContainer testContainer = testService.createTestContainer(
-                of(definitionFor("TitleA", "icd1234")),
-                null);
-        Mockito.verify(testContainerRepository, times(1)).save(testContainer);
+        TestingContainer testContainer = testingService.createTestingContainer(
+            of(definitionFor("TitleA", "icd1234")),
+            null);
+        Mockito.verify(testingContainerRepository, times(1)).save(testContainer);
     }
 
     @Test
     void shouldCreateTests_withCurrentTimeStamp() {
         LocalDateTime currentDate = LocalDateTime.now();
         Mockito.when(currentDateSupplier.get()).thenReturn(currentDate);
-        TestContainer testContainer = testService.createTestContainer(of(definitionFor("TitleA", null)), null);
-        assertThat(testContainer.getTestCases())
-                .extracting(TestCase::getLastChangeDate)
-                .containsExactly(currentDate);
+        TestingContainer newContainer = testingService.createTestingContainer(of(
+            definitionFor("TitleA", null)), null);
+
+        assertThat(newContainer.getTestingSamples())
+            .extracting(TestingSample::getLastChangeDateTime)
+            .containsExactly(currentDate);
     }
 
-    private TestCase withPersistentTestCase(String writeId) {
-        TestCase testCase = TestCase.builder()
-                .title("SARS-CoV2")
-                .id("1234")
-                .icdCode("1234")
-                .lastChangeDate(LocalDateTime.now())
-                .currentStatus(TestStageStatus.ISSUED)
-                .build();
-        TestContainer testContainer = TestContainer.builder()
-                .testCases(List.of(testCase))
-                .writeId(writeId)
-                .build();
-        Mockito.when(testContainerRepository.findByWriteId(testContainer.getWriteId())).thenReturn(Optional.of(testContainer));
-        return testCase;
+    private TestingSample withPersistentTestingSample(String writeId) {
+        TestingSample sample = TestingSample.builder()
+            .title("SARS-CoV2")
+            .id("1234")
+            .icdCode("1234")
+            .lastChangeDateTime(LocalDateTime.now())
+            .currentStatus(SampleStatus.ISSUED)
+            .build();
+        TestingContainer container = TestingContainer.builder()
+            .testingSamples(List.of(sample))
+            .writeId(writeId)
+            .build();
+        Mockito
+            .when(testingContainerRepository.findByWriteId(container.getWriteId()))
+            .thenReturn(Optional.of(container));
+
+        return sample;
     }
 
     @Test
     void whenUpdatingTest_shouldUpdateTimeStamp() {
-        LocalDateTime currentDate = LocalDateTime.now();
-        Mockito.when(currentDateSupplier.get()).thenReturn(currentDate);
-        TestCase testCase = withPersistentTestCase("ABCD");
-        testService.updateTestByWriteId("ABCD", testCase.getId(), TestbefundFindingResult.NEGATIVE);
-        assertThat(testCase.getLastChangeDate()).isEqualTo(currentDate);
+        LocalDateTime now = LocalDateTime.now();
+        Mockito.when(currentDateSupplier.get()).thenReturn(now);
+        TestingSample sample = withPersistentTestingSample("ABCD");
+
+        testingService.updateTestingByWriteId("ABCD", sample.getId(), TestbefundFindingResult.NEGATIVE);
+
+        assertThat(sample.getLastChangeDateTime()).isEqualTo(now);
     }
 
     @Test
     void whenUpdatingTest_shouldSetCorrectStatusForNegative() {
-        TestCase testCase = withPersistentTestCase("ABCDE");
-        testService.updateTestByWriteId("ABCDE", testCase.getId(), TestbefundFindingResult.NEGATIVE);
-        assertThat(testCase.getCurrentStatus()).isEqualTo(TestStageStatus.CONFIRM_NEGATIVE);
+        TestingSample sample = withPersistentTestingSample("ABCDE");
+
+        testingService.updateTestingByWriteId("ABCDE", sample.getId(), TestbefundFindingResult.NEGATIVE);
+
+        assertThat(sample.getCurrentStatus()).isEqualTo(SampleStatus.CONFIRM_NEGATIVE);
     }
 
     @Test
     void whenUpdatingTest_shouldSetCorrectStatusForPositive() {
-        TestCase testCase = withPersistentTestCase("ABCDE");
-        testService.updateTestByWriteId("ABCDE", testCase.getId(), TestbefundFindingResult.POSITIVE);
-        assertThat(testCase.getCurrentStatus()).isEqualTo(TestStageStatus.CONFIRM_POSITIVE);
+        TestingSample sample = withPersistentTestingSample("ABCDE");
+
+        testingService.updateTestingByWriteId("ABCDE", sample.getId(), TestbefundFindingResult.POSITIVE);
+
+        assertThat(sample.getCurrentStatus()).isEqualTo(SampleStatus.CONFIRM_POSITIVE);
     }
 
     @Test
     void shouldUseIdProvider() {
         Mockito.when(idProvider.get()).thenReturn("ABCDE");
-        TestContainer testContainer = testService.createTestContainer(of(definitionFor("TitleA", null)), null);
-        assertThat(testContainer.getReadId()).isEqualTo("ABCDE");
+
+        TestingContainer container =
+            testingService.createTestingContainer(of(
+                definitionFor("TitleA", null)), null);
+
+        assertThat(container.getReadId()).isEqualTo("ABCDE");
     }
 
     @Test
     void shouldAttachWriteId_toContainer() {
         Mockito.when(idProvider.get()).thenReturn("ABCDE");
-        TestContainer testContainer = testService.createTestContainer(of(definitionFor("TitleA", null)), null);
-        assertThat(testContainer.getWriteId()).isEqualTo("ABCDE");
+
+        TestingContainer container =
+            testingService.createTestingContainer(of(
+                definitionFor("TitleA", null)), null);
+
+        assertThat(container.getWriteId()).isEqualTo("ABCDE");
     }
 
     @Test
     void shouldBatchUpdate() {
         // Title is SARS-CoV2
-        TestCase testCase = withPersistentTestCase("ABCDE");
+        TestingSample sample = withPersistentTestingSample("ABCDE");
         TestbefundUpdateSingleFinding finding = new TestbefundUpdateSingleFinding()
-                .title(testCase.getTitle())
-                .testResult(TestbefundFindingResult.NEGATIVE);
+                .title(sample.getTitle())
+                .testingResult(TestbefundFindingResult.NEGATIVE);
         TestbefundUpdateFindingRequest request = new TestbefundUpdateFindingRequest();
+
         request.setWriteId("ABCDE");
         request.setFindings(of(finding));
-        TestContainer result = testService.updateTestContainer(request);
-        assertThat(result.getTestCases())
-                .extracting(TestCase::getCurrentStatus)
-                .containsExactly(TestStageStatus.CONFIRM_NEGATIVE);
+        TestingContainer result = testingService.updateFindingRequest(request);
+
+        assertThat(result.getTestingSamples())
+                .extracting(TestingSample::getCurrentStatus)
+                .containsExactly(SampleStatus.CONFIRM_NEGATIVE);
     }
 
     @Test
     void shouldCreateContainerWithClient() {
-        Client client = Client.builder().id("12345-abcdef").name("Testorganization").build();
-        Mockito.when(clientRepository.findById(client.getId())).thenReturn(Optional.of(client));
-        TestContainer testContainer = testService.createTestContainer(of(definitionFor("TitleA", null)), client.getId());
-        assertThat(testContainer.getClient()).isEqualTo(client);
+        Organization organization =
+            Organization.builder().id("12345-abcdef").name("Testorganization").build();
+        Mockito
+            .when(organizationRepository.findById(organization.getId()))
+            .thenReturn(Optional.of(organization));
+
+        TestingContainer container = testingService.createTestingContainer(of(
+            definitionFor("TitleA", null)), organization.getId());
+
+        assertThat(container.getOrganization()).isEqualTo(organization);
     }
 }
